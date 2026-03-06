@@ -217,9 +217,9 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 'zyz01', '$2a$10$0TvE1LfBKreCR07BDjhoE.OCaGitV9HTdsMmbUMG1qxqQoQD6EhYK', '李子硕', 0, '13598323186', '2695375620@qq.com', NULL, 1, NULL);
-INSERT INTO `sys_user` VALUES (2, 'zyz02', '$2a$10$ixf2BjcweGNbhnkz9qg9xuImlb8Rl2/PPQAMoYcASdWxVxriZSfda', '李一', 0, '13589323186', '', NULL, 1, NULL);
-INSERT INTO `sys_user` VALUES (3, 'zz01', '$2a$10$g569vf6RK1XAkXAzudIRae6WaBleSIXsgMadyjePfqf1Am/bTh.0q', '王一', 1, '13598323186', '', NULL, 1, NULL);
+INSERT INTO `sys_user` VALUES (1, 'zyz01', '$2a$10$0TvE1LfBKreCR07BDjhoE.OCaGitV9HTdsMmbUMG1qxqQoQD6EhYK', '李一三', 0, '13597383186', '2695375620@qq.com', NULL, 1, NULL);
+INSERT INTO `sys_user` VALUES (2, 'zyz02', '$2a$10$ixf2BjcweGNbhnkz9qg9xuImlb8Rl2/PPQAMoYcASdWxVxriZSfda', '李一', 0, '13585323186', '', NULL, 1, NULL);
+INSERT INTO `sys_user` VALUES (3, 'zz01', '$2a$10$g569vf6RK1XAkXAzudIRae6WaBleSIXsgMadyjePfqf1Am/bTh.0q', '王一', 1, '13598233646', '', NULL, 1, NULL);
 INSERT INTO `sys_user` VALUES (4, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', 2, NULL, NULL, NULL, 1, '2026-03-05 20:47:21');
 
 -- ----------------------------
