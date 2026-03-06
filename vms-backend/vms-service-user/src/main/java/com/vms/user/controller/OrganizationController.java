@@ -7,7 +7,7 @@ import com.vms.common.exception.BusinessException;
 import com.vms.common.result.Result;
 import com.vms.common.vo.OrgDetailVO;
 import com.vms.common.vo.OrgListVO;
-import com.vms.service.OrganizationService;
+import com.vms.user.service.OrganizationService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

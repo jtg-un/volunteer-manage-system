@@ -6,7 +6,7 @@ import com.vms.common.dto.VolunteerRegisterDTO;
 import com.vms.common.vo.LoginVO;
 import com.vms.common.vo.UserInfoVO;
 import com.vms.common.result.Result;
-import com.vms.service.AuthService;
+import com.vms.user.service.AuthService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

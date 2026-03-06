@@ -13,7 +13,7 @@ import com.vms.common.vo.ActivityListVO;
 import com.vms.common.vo.MyActivityListVO;
 import com.vms.repository.entity.Organization;
 import com.vms.repository.mapper.OrganizationMapper;
-import com.vms.service.ActivityService;
+import com.vms.activity.service.ActivityService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

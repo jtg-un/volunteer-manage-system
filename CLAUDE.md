@@ -65,41 +65,44 @@ vsm/
 │   │           ├── ActivityPositionMapper.java
 │   │           ├── RegistrationMapper.java
 │   │           └── SysRegionMapper.java
-│   ├── vms-service/                      # 业务逻辑层（共享 JAR）
-│   │   └── src/main/java/com/vms/service/
-│   │       ├── AuthService.java
-│   │       ├── DictService.java
-│   │       ├── OrganizationService.java
-│   │       ├── ActivityService.java
-│   │       ├── RegionService.java
-│   │       └── impl/
-│   │           ├── AuthServiceImpl.java
-│   │           ├── DictServiceImpl.java
-│   │           ├── OrganizationServiceImpl.java
-│   │           ├── ActivityServiceImpl.java
-│   │           └── RegionServiceImpl.java
 │   ├── vms-service-user/                 # 用户服务（端口 8081）
 │   │   └── src/main/
 │   │       ├── java/com/vms/user/
 │   │       │   ├── UserServiceApplication.java
-│   │       │   └── controller/
-│   │       │       ├── AuthController.java
-│   │       │       └── OrganizationController.java
+│   │       │   ├── controller/
+│   │       │   │   ├── AuthController.java
+│   │       │   │   └── OrganizationController.java
+│   │       │   └── service/              # 业务逻辑层
+│   │       │       ├── AuthService.java
+│   │       │       ├── OrganizationService.java
+│   │       │       └── impl/
+│   │       │           ├── AuthServiceImpl.java
+│   │       │           └── OrganizationServiceImpl.java
 │   │       └── resources/application.yml
 │   ├── vms-service-activity/             # 活动服务（端口 8083）
 │   │   └── src/main/
 │   │       ├── java/com/vms/activity/
 │   │       │   ├── ActivityServiceApplication.java
-│   │       │   └── controller/
-│   │       │       └── ActivityController.java
+│   │       │   ├── controller/
+│   │       │   │   └── ActivityController.java
+│   │       │   └── service/              # 业务逻辑层
+│   │       │       ├── ActivityService.java
+│   │       │       └── impl/
+│   │       │           └── ActivityServiceImpl.java
 │   │       └── resources/application.yml
 │   └── vms-service-system/               # 系统服务（端口 8087）
 │       └── src/main/
 │           ├── java/com/vms/system/
 │           │   ├── SystemServiceApplication.java
-│           │   └── controller/
-│           │       ├── DictController.java
-│           │       └── RegionController.java
+│           │   ├── controller/
+│           │   │   ├── DictController.java
+│           │   │   └── RegionController.java
+│           │   └── service/              # 业务逻辑层
+│           │       ├── DictService.java
+│           │       ├── RegionService.java
+│           │       └── impl/
+│           │           ├── DictServiceImpl.java
+│           │           └── RegionServiceImpl.java
 │           └── resources/application.yml
 │
 ├── vms-frontend/                         # 前端 Vue 3 项目
@@ -142,7 +145,13 @@ vsm/
 
 ### 模块依赖关系
 ```
-vms-common ← vms-repository ← vms-service ← [vms-service-user | vms-service-activity | vms-service-system]
+vms-common (公共模块)
+    ↑
+vms-repository (数据访问层)
+    ↑
+├── vms-service-user
+├── vms-service-activity
+└── vms-service-system
 ```
 
 ### 服务端口分配
@@ -399,6 +408,34 @@ import axios from 'axios'
 - 将 `res.data.total` 改为 `res.total`
 - 将 `res.data` 改为 `res`
 
+### 2026-03-06: 架构解耦重构
+**问题描述**:
+- vms-service 共享模块包含所有 Service 接口和实现类，导致严重的逻辑耦合
+- 各独立服务模块都依赖这个共享模块，违反了微服务独立部署的原则
+
+**解决方案**:
+1. 将 Service 实现类物理迁移到各自的服务模块中
+2. 废弃 vms-service 共享模块，实现真正的服务解耦
+3. 更新模块依赖关系：
+   - 移除根 pom.xml 中的 vms-service 模块声明
+   - 各服务模块依赖改为 vms-repository
+4. 更新所有 Controller 的 import 语句
+5. 删除 vms-service 目录
+
+**迁移文件清单**:
+| 原位置 | 新位置 |
+|--------|--------|
+| vms-service/.../AuthService.java | vms-service-user/.../service/AuthService.java |
+| vms-service/.../OrganizationService.java | vms-service-user/.../service/OrganizationService.java |
+| vms-service/.../impl/AuthServiceImpl.java | vms-service-user/.../service/impl/AuthServiceImpl.java |
+| vms-service/.../impl/OrganizationServiceImpl.java | vms-service-user/.../service/impl/OrganizationServiceImpl.java |
+| vms-service/.../ActivityService.java | vms-service-activity/.../service/ActivityService.java |
+| vms-service/.../impl/ActivityServiceImpl.java | vms-service-activity/.../service/impl/ActivityServiceImpl.java |
+| vms-service/.../DictService.java | vms-service-system/.../service/DictService.java |
+| vms-service/.../RegionService.java | vms-service-system/.../service/RegionService.java |
+| vms-service/.../impl/DictServiceImpl.java | vms-service-system/.../service/impl/DictServiceImpl.java |
+| vms-service/.../impl/RegionServiceImpl.java | vms-service-system/.../service/impl/RegionServiceImpl.java |
+
 ---
 
 ## 待开发功能
@@ -460,4 +497,4 @@ npm run dev
 
 ---
 
-*最后更新: 2026-03-05*
+*最后更新: 2026-03-06*

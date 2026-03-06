@@ -3,8 +3,8 @@ package com.vms.system.controller;
 import com.vms.common.result.Result;
 import com.vms.common.vo.DictVO;
 import com.vms.common.vo.RegionVO;
-import com.vms.service.DictService;
-import com.vms.service.RegionService;
+import com.vms.system.service.DictService;
+import com.vms.system.service.RegionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

@@ -17,7 +17,7 @@
     <dependencies>
         <dependency>
             <groupId>com.vms</groupId>
-            <artifactId>vms-service</artifactId>
+            <artifactId>vms-repository</artifactId>
         </dependency>
 
         <!-- Lombok -->

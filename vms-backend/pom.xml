@@ -15,7 +15,6 @@
         <!-- 基础模块（共享依赖） -->
         <module>vms-common</module>
         <module>vms-repository</module>
-        <module>vms-service</module>
         <!-- 独立服务模块 -->
         <module>vms-service-user</module>
         <module>vms-service-activity</module>
@@ -64,11 +63,6 @@
             <dependency>
                 <groupId>com.vms</groupId>
                 <artifactId>vms-repository</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.vms</groupId>
-                <artifactId>vms-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

@@ -2,16 +2,25 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="vms-common" />
         <module name="vsm-mapper" />
-        <module name="vsm-model" />
-        <module name="vsm-service" />
         <module name="vsm-web" />
         <module name="vsm-common" />
+        <module name="vms-repository" />
+        <module name="vsm-model" />
+        <module name="vsm-service" />
+        <module name="vms-service-activity" />
+        <module name="vms-service-user" />
+        <module name="vms-service-system" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="vms-service" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
