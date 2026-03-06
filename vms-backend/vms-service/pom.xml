@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.vms</groupId>
+        <artifactId>vms-backend</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>vms-service</artifactId>
+    <name>VMS Service</name>
+    <description>业务逻辑层：Service 接口与实现</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.vms</groupId>
+            <artifactId>vms-repository</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.vms</groupId>
+            <artifactId>vms-repository</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

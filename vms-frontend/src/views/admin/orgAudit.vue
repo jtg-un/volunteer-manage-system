@@ -1,0 +1,197 @@
+<template>
+  <div class="org-audit-page">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>组织审核管理</span>
+          <el-select v-model="auditStatus" placeholder="审核状态" clearable @change="handleSearch" style="width: 150px">
+            <el-option label="全部" :value="null" />
+            <el-option label="待审核" :value="0" />
+            <el-option label="已通过" :value="1" />
+            <el-option label="已拒绝" :value="2" />
+          </el-select>
+        </div>
+      </template>
+
+      <el-table :data="tableData" v-loading="loading" stripe>
+        <el-table-column prop="orgId" label="ID" width="80" />
+        <el-table-column prop="username" label="账号" width="120" />
+        <el-table-column prop="orgName" label="队伍名称" min-width="150" />
+        <el-table-column prop="contactPerson" label="联系人" width="100" />
+        <el-table-column prop="contactPhone" label="联系电话" width="130" />
+        <el-table-column label="审核状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="statusTagType(row.auditStatus)">{{ statusText(row.auditStatus) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="180" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="handleViewDetail(row)">查看详情</el-button>
+            <el-button v-if="row.auditStatus === 0" type="success" link @click="handleAudit(row, 1)">通过</el-button>
+            <el-button v-if="row.auditStatus === 0" type="danger" link @click="handleAudit(row, 2)">拒绝</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-model:current-page="pageNum"
+        v-model:page-size="pageSize"
+        :total="total"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next"
+        @size-change="fetchData"
+        @current-change="fetchData"
+        style="margin-top: 20px; justify-content: flex-end"
+      />
+    </el-card>
+
+    <!-- 详情弹窗 -->
+    <el-dialog v-model="detailVisible" title="组织详情" width="600px">
+      <el-descriptions :column="2" border v-if="currentOrg">
+        <el-descriptions-item label="账号">{{ currentOrg.username }}</el-descriptions-item>
+        <el-descriptions-item label="队伍名称">{{ currentOrg.orgName }}</el-descriptions-item>
+        <el-descriptions-item label="单位类型">{{ currentOrg.unitType || '未填写' }}</el-descriptions-item>
+        <el-descriptions-item label="联系人">{{ currentOrg.contactPerson }}</el-descriptions-item>
+        <el-descriptions-item label="联系电话">{{ currentOrg.contactPhone }}</el-descriptions-item>
+        <el-descriptions-item label="成立日期">{{ currentOrg.foundDate || '未填写' }}</el-descriptions-item>
+        <el-descriptions-item label="地址" :span="2">{{ currentOrg.address || '未填写' }}</el-descriptions-item>
+        <el-descriptions-item label="简介" :span="2">{{ currentOrg.intro || '未填写' }}</el-descriptions-item>
+        <el-descriptions-item label="审核状态">
+          <el-tag :type="statusTagType(currentOrg.auditStatus)">{{ statusText(currentOrg.auditStatus) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="拒绝原因" v-if="currentOrg.auditStatus === 2">
+          <span style="color: #f56c6c">{{ currentOrg.rejectReason }}</span>
+        </el-descriptions-item>
+      </el-descriptions>
+      <template #footer v-if="currentOrg && currentOrg.auditStatus === 0">
+        <el-button @click="detailVisible = false">取消</el-button>
+        <el-button type="danger" @click="handleAudit(currentOrg, 2)">拒绝</el-button>
+        <el-button type="success" @click="handleAudit(currentOrg, 1)">通过</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 拒绝原因弹窗 -->
+    <el-dialog v-model="rejectVisible" title="拒绝原因" width="400px">
+      <el-input v-model="rejectReason" type="textarea" :rows="3" placeholder="请输入拒绝原因" />
+      <template #footer>
+        <el-button @click="rejectVisible = false">取消</el-button>
+        <el-button type="danger" @click="confirmReject">确认拒绝</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { getOrgList, getOrgDetail, auditOrg } from '@/api/org'
+
+const loading = ref(false)
+const tableData = ref([])
+const pageNum = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const auditStatus = ref(null)
+
+const detailVisible = ref(false)
+const currentOrg = ref(null)
+
+const rejectVisible = ref(false)
+const rejectReason = ref('')
+const pendingOrg = ref(null)
+
+onMounted(() => {
+  fetchData()
+})
+
+async function fetchData() {
+  loading.value = true
+  try {
+    const params = {
+      page: pageNum.value,
+      size: pageSize.value
+    }
+    if (auditStatus.value !== null) {
+      params.auditStatus = auditStatus.value
+    }
+    const data = await getOrgList(params)
+    tableData.value = data.records || []
+    total.value = data.total || 0
+  } catch (error) {
+    console.error('获取组织列表失败:', error)
+    tableData.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleSearch() {
+  pageNum.value = 1
+  fetchData()
+}
+
+function statusText(status) {
+  const map = { 0: '待审核', 1: '已通过', 2: '已拒绝' }
+  return map[status] || '未知'
+}
+
+function statusTagType(status) {
+  const map = { 0: 'warning', 1: 'success', 2: 'danger' }
+  return map[status] || 'info'
+}
+
+async function handleViewDetail(row) {
+  const data = await getOrgDetail(row.orgId)
+  currentOrg.value = data
+  detailVisible.value = true
+}
+
+function handleAudit(row, status) {
+  if (status === 2) {
+    pendingOrg.value = row
+    rejectReason.value = ''
+    rejectVisible.value = true
+  } else {
+    ElMessageBox.confirm('确认通过该组织的入驻申请？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      doAudit(row.orgId, 1, null)
+    })
+  }
+}
+
+async function confirmReject() {
+  if (!rejectReason.value.trim()) {
+    ElMessage.warning('请输入拒绝原因')
+    return
+  }
+  await doAudit(pendingOrg.value.orgId, 2, rejectReason.value)
+  rejectVisible.value = false
+  detailVisible.value = false
+}
+
+async function doAudit(orgId, auditStatus, rejectReason) {
+  const data = { orgId, auditStatus }
+  if (rejectReason) {
+    data.rejectReason = rejectReason
+  }
+  await auditOrg(data)
+  ElMessage.success('审核成功')
+  fetchData()
+}
+</script>
+
+<style scoped>
+.org-audit-page {
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>

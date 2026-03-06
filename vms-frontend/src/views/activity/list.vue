@@ -1,0 +1,347 @@
+<template>
+  <div class="activity-list">
+    <!-- 筛选工具栏 -->
+    <el-card class="filter-card">
+      <el-form :inline="true" :model="queryParams" class="filter-form">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="queryParams.keyword"
+            placeholder="搜索活动标题"
+            clearable
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
+        <el-form-item label="服务类别">
+          <el-select
+            v-model="queryParams.categoryId"
+            placeholder="全部"
+            clearable
+            style="width: 140px"
+          >
+            <el-option
+              v-for="item in categoryList"
+              :key="item.dictKey"
+              :label="item.dictValue"
+              :value="item.dictKey"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="所属地区">
+          <el-cascader
+            v-model="queryParams.regionCodes"
+            :options="regionOptions"
+            :props="regionProps"
+            placeholder="全部地区"
+            clearable
+            style="width: 200px"
+            @change="handleRegionChange"
+          />
+        </el-form-item>
+        <el-form-item label="活动状态">
+          <el-select
+            v-model="queryParams.status"
+            placeholder="全部"
+            clearable
+            style="width: 120px"
+          >
+            <el-option label="待启动" :value="0" />
+            <el-option label="运行中" :value="1" />
+            <el-option label="已结项" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- 活动列表 -->
+    <el-card class="list-card">
+      <el-table v-loading="loading" :data="activityList" stripe>
+        <el-table-column prop="projectCode" label="项目编号" width="150" />
+        <el-table-column prop="title" label="项目标题" min-width="200">
+          <template #default="{ row }">
+            <el-link type="primary" @click="handleViewDetail(row.activityId)">
+              {{ row.title }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="categoryName" label="服务类别" width="120" />
+        <el-table-column prop="regionName" label="所属地区" width="120" />
+        <el-table-column prop="orgName" label="发起组织" width="150" />
+        <el-table-column label="报名时间" width="200">
+          <template #default="{ row }">
+            {{ formatTime(row.startTime) }} ~ {{ formatTime(row.endTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="报名情况" width="120">
+          <template #default="{ row }">
+            <span :class="getCountClass(row)">
+              {{ row.totalCurrentCount }}/{{ row.totalPlanCount }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="statusName" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)">
+              {{ row.statusName }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="handleViewDetail(row.activityId)">
+              查看详情
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-model:current-page="queryParams.page"
+        v-model:page-size="queryParams.size"
+        :total="total"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next, jumper"
+        style="margin-top: 20px; justify-content: flex-end"
+        @size-change="loadActivityList"
+        @current-change="loadActivityList"
+      />
+    </el-card>
+
+    <!-- 活动详情弹窗 -->
+    <el-dialog
+      v-model="detailVisible"
+      title="活动详情"
+      width="700px"
+      destroy-on-close
+    >
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="项目编号">
+          {{ detailData.projectCode }}
+        </el-descriptions-item>
+        <el-descriptions-item label="项目标题" :span="2">
+          {{ detailData.title }}
+        </el-descriptions-item>
+        <el-descriptions-item label="服务类别">
+          {{ detailData.categoryName }}
+        </el-descriptions-item>
+        <el-descriptions-item label="所属地区">
+          {{ detailData.regionName }}
+        </el-descriptions-item>
+        <el-descriptions-item label="发起组织">
+          {{ detailData.orgName }}
+        </el-descriptions-item>
+        <el-descriptions-item label="服务对象">
+          {{ detailData.targetAudience || '未设置' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="活动时间" :span="2">
+          {{ formatTime(detailData.startTime) }} ~ {{ formatTime(detailData.endTime) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="活动状态">
+          <el-tag :type="getStatusType(detailData.status)">
+            {{ detailData.statusName }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="项目描述" :span="2">
+          {{ detailData.description || '暂无描述' }}
+        </el-descriptions-item>
+      </el-descriptions>
+
+      <el-divider content-position="left">岗位信息</el-divider>
+
+      <el-table :data="detailData.positions" border style="width: 100%">
+        <el-table-column prop="posName" label="岗位名称" />
+        <el-table-column prop="planCount" label="计划人数" width="100" />
+        <el-table-column prop="currentCount" label="已报名" width="100" />
+        <el-table-column label="剩余名额" width="100">
+          <template #default="{ row }">
+            <span :class="{ 'text-danger': row.remainCount <= 0 }">
+              {{ row.remainCount }}
+            </span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getActivityList, getActivityDetail } from '@/api/activity'
+import { getDict, getRegionList } from '@/api/system'
+
+const loading = ref(false)
+const detailVisible = ref(false)
+const detailData = ref({})
+const activityList = ref([])
+const total = ref(0)
+const categoryList = ref([])
+const regionOptions = ref([])
+
+const queryParams = reactive({
+  page: 1,
+  size: 10,
+  keyword: '',
+  categoryId: '',
+  regionCodes: [],
+  regionCode: '',
+  status: null
+})
+
+const regionProps = {
+  value: 'regionCode',
+  label: 'regionName',
+  children: 'children',
+  lazy: true,
+  lazyLoad: async (node, resolve) => {
+    const { level, value } = node
+    const parentCode = level === 0 ? '' : value
+    try {
+      const res = await getRegionList(parentCode)
+      const nodes = res.map(item => ({
+        regionCode: item.regionCode,
+        regionName: item.regionName,
+        leaf: item.level >= 3 || !item.hasChildren
+      }))
+      resolve(nodes)
+    } catch {
+      resolve([])
+    }
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    loadCategories(),
+    loadProvinces(),
+    loadActivityList()
+  ])
+})
+
+async function loadCategories() {
+  try {
+    const res = await getDict('service_category')
+    categoryList.value = res
+  } catch {
+    // ignore
+  }
+}
+
+async function loadProvinces() {
+  try {
+    const res = await getRegionList('')
+    regionOptions.value = res.map(item => ({
+      regionCode: item.regionCode,
+      regionName: item.regionName,
+      children: item.hasChildren ? [] : undefined,
+      leaf: !item.hasChildren
+    }))
+  } catch {
+    // ignore
+  }
+}
+
+async function loadActivityList() {
+  loading.value = true
+  try {
+    const params = {
+      page: queryParams.page,
+      size: queryParams.size,
+      keyword: queryParams.keyword || undefined,
+      categoryId: queryParams.categoryId || undefined,
+      regionCode: queryParams.regionCode || undefined,
+      status: queryParams.status
+    }
+    const res = await getActivityList(params)
+    activityList.value = res.records
+    total.value = res.total
+  } catch {
+    ElMessage.error('加载活动列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleRegionChange(value) {
+  queryParams.regionCode = value[value.length - 1] || ''
+}
+
+function handleSearch() {
+  queryParams.page = 1
+  loadActivityList()
+}
+
+function handleReset() {
+  queryParams.keyword = ''
+  queryParams.categoryId = ''
+  queryParams.regionCodes = []
+  queryParams.regionCode = ''
+  queryParams.status = null
+  queryParams.page = 1
+  loadActivityList()
+}
+
+async function handleViewDetail(id) {
+  try {
+    const res = await getActivityDetail(id)
+    detailData.value = res
+    detailVisible.value = true
+  } catch {
+    ElMessage.error('加载活动详情失败')
+  }
+}
+
+function formatTime(time) {
+  if (!time) return ''
+  return time.replace('T', ' ').slice(0, 16)
+}
+
+function getStatusType(status) {
+  const types = {
+    0: 'info',
+    1: 'success',
+    2: 'warning',
+    3: 'warning',
+    4: 'danger'
+  }
+  return types[status] || 'info'
+}
+
+function getCountClass(row) {
+  const ratio = row.totalCurrentCount / row.totalPlanCount
+  if (ratio >= 1) return 'text-danger'
+  if (ratio >= 0.8) return 'text-warning'
+  return 'text-success'
+}
+</script>
+
+<style scoped>
+.activity-list {
+  padding: 20px;
+}
+
+.filter-card {
+  margin-bottom: 20px;
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.text-danger {
+  color: #f56c6c;
+}
+
+.text-warning {
+  color: #e6a23c;
+}
+
+.text-success {
+  color: #67c23a;
+}
+</style>

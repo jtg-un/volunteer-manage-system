@@ -1,0 +1,7 @@
+com\vms\repository\mapper\OrganizationMapper.class
+com\vms\repository\entity\SysUser.class
+com\vms\repository\mapper\SysDictMapper.class
+com\vms\repository\entity\Organization.class
+com\vms\repository\mapper\SysUserMapper.class
+com\vms\repository\config\MybatisPlusConfig.class
+com\vms\repository\entity\SysDict.class

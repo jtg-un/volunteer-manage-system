@@ -1,0 +1,16 @@
+com\vms\common\vo\LoginVO.class
+com\vms\common\dto\OrgUpdateDTO.class
+com\vms\common\exception\GlobalExceptionHandler.class
+com\vms\common\dto\VolunteerRegisterDTO.class
+com\vms\common\result\Result.class
+com\vms\common\vo\UserInfoVO.class
+com\vms\common\dto\OrgAuditDTO.class
+com\vms\common\vo\OrgDetailVO.class
+com\vms\common\config\SecurityConfig.class
+com\vms\common\exception\BusinessException.class
+com\vms\common\vo\DictVO.class
+com\vms\common\dto\OrgRegisterDTO.class
+com\vms\common\utils\PasswordUtils.class
+com\vms\common\utils\JwtUtils.class
+com\vms\common\vo\OrgListVO.class
+com\vms\common\dto\LoginDTO.class

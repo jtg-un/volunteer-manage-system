@@ -1,0 +1,6 @@
+com\vms\service\DictService.class
+com\vms\service\impl\AuthServiceImpl.class
+com\vms\service\impl\DictServiceImpl.class
+com\vms\service\AuthService.class
+com\vms\service\impl\OrganizationServiceImpl.class
+com\vms\service\OrganizationService.class
