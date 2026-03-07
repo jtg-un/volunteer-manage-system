@@ -28,9 +28,17 @@ public class WebMvcConfig implements WebMvcConfigurer {
             uploadDir.mkdirs();
         }
 
+        // 确保路径以 / 结尾
+        String path = uploadPath.endsWith("/") || uploadPath.endsWith("\\")
+                ? uploadPath
+                : uploadPath + "/";
+
+        // 确保URL前缀以 / 结尾
+        String prefix = urlPrefix.endsWith("/") ? urlPrefix : urlPrefix + "/";
+
         // 映射静态资源路径
         // 访问 URL: /uploads/avatar/xxx.jpg -> 物理路径: D:/vms-upload/avatar/xxx.jpg
-        registry.addResourceHandler(urlPrefix + "**")
-                .addResourceLocations("file:" + uploadPath);
+        registry.addResourceHandler(prefix + "**")
+                .addResourceLocations("file:" + path);
     }
 }

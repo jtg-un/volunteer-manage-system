@@ -11,7 +11,7 @@
  Target Server Version : 80027 (8.0.27)
  File Encoding         : 65001
 
- Date: 07/03/2026 13:11:31
+ Date: 07/03/2026 14:11:55
 */
 
 SET NAMES utf8mb4;
@@ -47,10 +47,9 @@ CREATE TABLE `activity`  (
 INSERT INTO `activity` VALUES (1, 1, 'P202603050001', '教育服务1', 'education', '110101', '小孩儿', '2026-02-28 16:12:11', '2026-03-09 16:01:02', 2, '描述', NULL, NULL);
 INSERT INTO `activity` VALUES (2, 1, 'P202603050002', '活动02', 'charity', '320508', '老人', '2026-03-16 16:09:00', '2026-03-30 16:00:00', 4, '', NULL, NULL);
 INSERT INTO `activity` VALUES (3, 1, 'P202603060001', '活动03', 'charity', '310107', '儿童', '2026-03-23 16:00:00', '2026-03-30 16:00:00', 4, '描述', '原因123', NULL);
-INSERT INTO `activity` VALUES (4, 1, 'P202603060002', '活动04', 'charity', '110107', '老人', '2026-03-30 16:00:00', '2026-04-15 16:00:00', 1, '', NULL, NULL);
+INSERT INTO `activity` VALUES (4, 1, 'P202603060002', '活动04', 'charity', '110107', '老人', '2026-03-30 16:00:00', '2026-04-15 16:00:00', 2, '', NULL, NULL);
 INSERT INTO `activity` VALUES (5, 1, 'P202603060003', '1234', 'education', '3204', '123', '2026-03-07 16:00:00', '2026-03-20 16:00:00', 4, '', '原因1', NULL);
 INSERT INTO `activity` VALUES (6, 1, 'P202603060004', '12345', 'charity', '310107', '', '2026-03-22 16:00:00', '2026-03-30 16:00:00', 2, '描述', NULL, NULL);
-INSERT INTO `activity` VALUES (7, 1, 'P202603060005', '项目一', 'culture', '3204', 'er', '2026-02-28 16:00:00', '2026-03-23 16:00:00', 1, '', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for activity_position
@@ -77,7 +76,6 @@ INSERT INTO `activity_position` VALUES (4, 3, '岗位01', 1, 0);
 INSERT INTO `activity_position` VALUES (5, 4, '岗位9', 1, 0);
 INSERT INTO `activity_position` VALUES (6, 5, '123', 1, 0);
 INSERT INTO `activity_position` VALUES (7, 6, '1234', 1, 0);
-INSERT INTO `activity_position` VALUES (8, 7, '岗位6', 6, 0);
 
 -- ----------------------------
 -- Table structure for checkin_log
@@ -86,7 +84,6 @@ DROP TABLE IF EXISTS `checkin_log`;
 CREATE TABLE `checkin_log`  (
   `log_id` bigint NOT NULL AUTO_INCREMENT,
   `reg_id` bigint NOT NULL COMMENT '关联报名ID',
-  `user_id` bigint NOT NULL COMMENT '志愿者ID',
   `check_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `check_type` tinyint NOT NULL COMMENT '0签到 1签退',
   PRIMARY KEY (`log_id`) USING BTREE,
@@ -104,14 +101,14 @@ CREATE TABLE `checkin_log`  (
 DROP TABLE IF EXISTS `evaluation`;
 CREATE TABLE `evaluation`  (
   `eval_id` bigint NOT NULL AUTO_INCREMENT,
-  `org_id` bigint NOT NULL,
-  `activity_id` bigint NOT NULL,
-  `user_id` bigint NOT NULL COMMENT '评价人',
+  `reg_id` bigint NOT NULL COMMENT '关联报名ID',
   `score_training` decimal(3, 2) NULL DEFAULT 5.00,
   `score_cooperation` decimal(3, 2) NULL DEFAULT 5.00,
   `score_execution` decimal(3, 2) NULL DEFAULT 5.00,
   `comment` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-  PRIMARY KEY (`eval_id`) USING BTREE
+  PRIMARY KEY (`eval_id`) USING BTREE,
+  INDEX `fk_eval_reg`(`reg_id` ASC) USING BTREE,
+  CONSTRAINT `fk_eval_reg` FOREIGN KEY (`reg_id`) REFERENCES `registration` (`reg_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '评价表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -147,7 +144,7 @@ CREATE TABLE `organization`  (
 -- ----------------------------
 -- Records of organization
 -- ----------------------------
-INSERT INTO `organization` VALUES (1, 3, '队伍01', NULL, NULL, NULL, NULL, '王一', '13598323186', '', '', 1, '2026-03-05 22:00:54', 5, NULL);
+INSERT INTO `organization` VALUES (1, 3, '队伍01', NULL, '', NULL, '2026-03-02', '王一', '13598323186', '河南省', '', 1, '2026-03-05 22:00:54', 5, NULL);
 INSERT INTO `organization` VALUES (2, 6, '队伍02', NULL, NULL, NULL, NULL, '李二', '15568923189', '选填', '选填', 1, '2026-03-05 22:10:51', 5, NULL);
 INSERT INTO `organization` VALUES (3, 7, '组织03', NULL, NULL, NULL, NULL, '张三', '13058397590', '地址', '简介', 2, '2026-03-05 22:11:54', 5, '没有填写地址');
 INSERT INTO `organization` VALUES (4, 9, '组织04', NULL, NULL, NULL, NULL, '组织4', '13498756478', '地址', '简介', 1, '2026-03-05 22:48:50', 5, NULL);
@@ -407,7 +404,7 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 INSERT INTO `sys_user` VALUES (1, 'zyz01', '$2a$10$0TvE1LfBKreCR07BDjhoE.OCaGitV9HTdsMmbUMG1qxqQoQD6EhYK', '李子硕', 0, '13598323186', '2695375620@qq.com', NULL, 1, NULL);
 INSERT INTO `sys_user` VALUES (2, 'zyz02', '$2a$10$ixf2BjcweGNbhnkz9qg9xuImlb8Rl2/PPQAMoYcASdWxVxriZSfda', '李一', 0, '13589323186', '', NULL, 1, NULL);
-INSERT INTO `sys_user` VALUES (3, 'zz01', '$2a$10$g569vf6RK1XAkXAzudIRae6WaBleSIXsgMadyjePfqf1Am/bTh.0q', '王一', 1, '13598323186', '', NULL, 1, NULL);
+INSERT INTO `sys_user` VALUES (3, 'zz01', '$2a$10$vUotgDu.WwLkoqccQ8aBYeZfBcvvRldyQRI8msgZbgpx16WMSHAse', '王一', 1, '13598323186', '', '/uploads/avatar/2026/03/3_1772862387120.png', 1, NULL);
 INSERT INTO `sys_user` VALUES (4, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', 2, NULL, NULL, NULL, 1, '2026-03-05 20:47:21');
 INSERT INTO `sys_user` VALUES (5, 'admin01', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '系统管理员01', 2, '13598323185', '', NULL, 1, NULL);
 INSERT INTO `sys_user` VALUES (6, 'zz02', '$2a$10$DojhG8ZBfCPjxuByp0r1OOTRhKNmG7Z68873jJQfP5jl47mOxBTrm', '李二', 1, '15568923189', '', NULL, 1, NULL);
@@ -423,8 +420,6 @@ DROP TABLE IF EXISTS `volunteer_record`;
 CREATE TABLE `volunteer_record`  (
   `record_id` bigint NOT NULL AUTO_INCREMENT,
   `reg_id` bigint NOT NULL COMMENT '一笔报名对应一笔最终时长',
-  `user_id` bigint NOT NULL,
-  `activity_id` bigint NOT NULL,
   `hours` decimal(5, 2) NOT NULL DEFAULT 0.00 COMMENT '核定小时数',
   `points` int NULL DEFAULT 0 COMMENT '核定积分',
   `audit_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发放时间',
