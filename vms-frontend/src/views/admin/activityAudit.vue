@@ -25,7 +25,7 @@
         <el-table-column prop="regionName" label="所属地区" width="120" />
         <el-table-column label="活动时间" width="200">
           <template #default="{ row }">
-            {{ formatTime(row.startTime) }} ~ {{ formatTime(row.endTime) }}
+            {{ formatTimeRange(row.startTime, row.endTime) }}
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100">
@@ -68,45 +68,14 @@
     </el-card>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="活动详情" width="700px">
-      <el-descriptions :column="2" border v-if="currentActivity">
-        <el-descriptions-item label="项目编号">{{ currentActivity.projectCode }}</el-descriptions-item>
-        <el-descriptions-item label="活动标题">{{ currentActivity.title }}</el-descriptions-item>
-        <el-descriptions-item label="发起组织">{{ currentActivity.orgName }}</el-descriptions-item>
-        <el-descriptions-item label="服务类别">{{ currentActivity.categoryName }}</el-descriptions-item>
-        <el-descriptions-item label="所属地区">{{ currentActivity.regionName }}</el-descriptions-item>
-        <el-descriptions-item label="服务对象">{{ currentActivity.targetAudience }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="getStatusType(currentActivity.status)">{{ getStatusName(currentActivity.status) }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="提交时间">{{ formatDateTime(currentActivity.createTime) }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ formatDateTime(currentActivity.startTime) }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ formatDateTime(currentActivity.endTime) }}</el-descriptions-item>
-        <el-descriptions-item label="项目描述" :span="2">
-          {{ currentActivity.description || '无' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="拒绝原因" :span="2" v-if="currentActivity.status === 4">
-          <el-text type="danger">{{ currentActivity.rejectReason || '无' }}</el-text>
-        </el-descriptions-item>
-      </el-descriptions>
-
-      <div style="margin-top: 20px;">
-        <h4>岗位信息</h4>
-        <el-table :data="currentActivity?.positions || []" border size="small">
-          <el-table-column prop="posName" label="岗位名称" />
-          <el-table-column prop="planCount" label="计划人数" />
-          <el-table-column prop="currentCount" label="已报名" />
-        </el-table>
-      </div>
-
-      <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
-        <template v-if="currentActivity?.status === 3">
-          <el-button type="success" @click="handleAudit(currentActivity, 1)">通过</el-button>
-          <el-button type="danger" @click="handleAudit(currentActivity, 2)">拒绝</el-button>
+    <ActivityDetailDialog v-model="detailVisible" :data="currentActivity" show-create-time>
+      <template #actions="{ data }">
+        <template v-if="data.status === 3">
+          <el-button type="success" @click="handleAudit(data, 1)">通过</el-button>
+          <el-button type="danger" @click="handleAudit(data, 2)">拒绝</el-button>
         </template>
       </template>
-    </el-dialog>
+    </ActivityDetailDialog>
 
     <!-- 拒绝原因弹窗 -->
     <el-dialog v-model="rejectVisible" title="拒绝原因" width="400px">
@@ -128,6 +97,8 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getPendingActivities, getActivityDetail, auditActivity } from '@/api/activity'
+import { getStatusName, getStatusType, formatDateTime, formatTimeRange } from '@/utils/activity'
+import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -138,7 +109,6 @@ const pagination = ref({
 })
 
 const filterStatus = ref(null)
-
 const detailVisible = ref(false)
 const currentActivity = ref(null)
 
@@ -156,8 +126,7 @@ const fetchData = async () => {
     })
     tableData.value = res.records || []
     pagination.value.total = res.total || 0
-  } catch (error) {
-    console.error(error)
+  } catch {
     tableData.value = []
     pagination.value.total = 0
   } finally {
@@ -175,21 +144,19 @@ const handleDetail = async (row) => {
     const res = await getActivityDetail(row.activityId)
     currentActivity.value = res
     detailVisible.value = true
-  } catch (error) {
-    console.error(error)
+  } catch {
+    // ignore
   }
 }
 
 const handleAudit = async (row, result) => {
   if (result === 1) {
-    // 通过
     ElMessageBox.confirm('确定通过该活动审核吗？', '提示', {
       type: 'success'
     }).then(async () => {
       await doAudit(row.activityId, result, '')
     }).catch(() => {})
   } else {
-    // 拒绝 - 弹窗输入原因
     pendingAuditActivity.value = row
     rejectReason.value = ''
     rejectVisible.value = true
@@ -205,39 +172,19 @@ const confirmReject = async () => {
   rejectVisible.value = false
 }
 
-const doAudit = async (activityId, auditResult, rejectReason) => {
+const doAudit = async (activityId, auditResult, rejectReasonText) => {
   try {
     await auditActivity({
       activityId,
       auditResult,
-      rejectReason
+      rejectReason: rejectReasonText
     })
     ElMessage.success('审核完成')
     fetchData()
     detailVisible.value = false
-  } catch (error) {
-    console.error(error)
+  } catch {
+    // ignore
   }
-}
-
-const getStatusName = (status) => {
-  const map = { 0: '待启动', 1: '运行中', 2: '已结项', 3: '待审核', 4: '已拒绝' }
-  return map[status] || '未知'
-}
-
-const getStatusType = (status) => {
-  const map = { 0: 'info', 1: 'success', 2: 'warning', 3: 'warning', 4: 'danger' }
-  return map[status] || 'info'
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return time.replace('T', ' ').substring(0, 10)
-}
-
-const formatDateTime = (time) => {
-  if (!time) return ''
-  return time.replace('T', ' ').substring(0, 16)
 }
 
 onMounted(() => {

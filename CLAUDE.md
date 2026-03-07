@@ -35,6 +35,8 @@ vsm/
 │   │       ├── utils/
 │   │       │   ├── JwtUtils.java
 │   │       │   └── PasswordUtils.java
+│   │       ├── context/                   # 用户上下文
+│   │       │   └── UserContext.java
 │   │       └── vo/                       # 视图对象
 │   │           ├── DictVO.java
 │   │           ├── LoginVO.java
@@ -84,11 +86,19 @@ vsm/
 │   │       ├── java/com/vms/activity/
 │   │       │   ├── ActivityServiceApplication.java
 │   │       │   ├── controller/
-│   │       │   │   └── ActivityController.java
-│   │       │   └── service/              # 业务逻辑层
-│   │       │       ├── ActivityService.java
-│   │       │       └── impl/
-│   │       │           └── ActivityServiceImpl.java
+│   │       │   │   ├── PublicActivityController.java
+│   │       │   │   ├── OrgActivityController.java
+│   │       │   │   └── AdminActivityController.java
+│   │       │   └── service/              # 业务逻辑层（按职责拆分）
+│   │       │       ├── PublicActivityService.java
+│   │       │       ├── OrgActivityService.java
+│   │       │       ├── AdminActivityService.java
+│   │       │       ├── impl/
+│   │       │       │   ├── PublicActivityServiceImpl.java
+│   │       │       │   ├── OrgActivityServiceImpl.java
+│   │       │       │   └── AdminActivityServiceImpl.java
+│   │       │       └── support/
+│   │       │           └── ActivitySupport.java  # 公共辅助方法
 │   │       └── resources/application.yml
 │   └── vms-service-system/               # 系统服务（端口 8087）
 │       └── src/main/
@@ -122,7 +132,13 @@ vsm/
 │       ├── stores/
 │       │   └── user.js                   # Pinia 用户状态
 │       ├── utils/
-│       │   └── request.js                # Axios 封装
+│       │   ├── request.js                # Axios 封装
+│       │   └── activity.js               # 活动状态工具函数
+│       ├── composables/
+│       │   └── useRegion.js              # 地区级联加载
+│       ├── components/
+│       │   └── activity/
+│       │       └── ActivityDetailDialog.vue  # 活动详情弹窗
 │       └── views/
 │           ├── login/index.vue           # 登录页
 │           ├── register/index.vue        # 注册页
@@ -436,6 +452,65 @@ import axios from 'axios'
 | vms-service/.../impl/DictServiceImpl.java | vms-service-system/.../service/impl/DictServiceImpl.java |
 | vms-service/.../impl/RegionServiceImpl.java | vms-service-system/.../service/impl/RegionServiceImpl.java |
 
+### 2026-03-07: 后端代码拆分重构（接口隔离）
+**问题描述**:
+- ActivityServiceImpl.java 代码行数达 427 行，职责混杂
+- ActivityController.java 代码行数达 212 行，包含大量重复代码
+- 违反单一职责原则，可读性和可维护性差
+
+**解决方案**:
+
+1. **按职责拆分 Service 接口**：
+   - `PublicActivityService.java` - 公开接口（活动列表、详情）
+   - `OrgActivityService.java` - 组织接口（发布、管理活动）
+   - `AdminActivityService.java` - 管理员接口（审核活动）
+
+2. **每个接口对应一个实现类**：
+   - `PublicActivityServiceImpl.java` (~92行)
+   - `OrgActivityServiceImpl.java` (~141行)
+   - `AdminActivityServiceImpl.java` (~93行)
+
+3. **提取公共辅助类**：
+   - `UserContext.java` - Token 解析和权限验证
+   - `ActivitySupport.java` - VO 转换、字典查询、项目编号生成
+
+4. **拆分 Controller**：
+   - `PublicActivityController.java` (~43行)
+   - `OrgActivityController.java` (~92行)
+   - `AdminActivityController.java` (~54行)
+
+**重构收益**:
+- 每个文件控制在 150 行以内
+- 职责分离清晰，符合接口隔离原则
+- 消除 Token 解析和组织查询的重复代码
+
+### 2026-03-07: 前端代码拆分重构
+**问题描述**:
+- `views/activity/list.vue` 代码行数达 346 行
+- `views/admin/activityAudit.vue` 代码行数达 251 行
+- 存在大量重复的工具函数和组件代码
+
+**解决方案**:
+
+1. **提取工具函数** (`utils/activity.js`):
+   - `getStatusName()` - 状态名称映射
+   - `getStatusType()` - 状态标签类型
+   - `formatDateTime()` - 时间格式化
+   - `getCountClass()` - 报名人数样式
+
+2. **提取 Composable** (`composables/useRegion.js`):
+   - 地区级联加载逻辑
+   - 支持懒加载
+
+3. **提取公共组件** (`components/activity/ActivityDetailDialog.vue`):
+   - 活动详情弹窗组件
+   - 支持插槽自定义操作按钮
+
+**重构收益**:
+- `list.vue`: 346行 → 239行
+- `activityAudit.vue`: 251行 → 198行
+- 消除重复代码，提高复用性
+
 ---
 
 ## 待开发功能
@@ -497,4 +572,4 @@ npm run dev
 
 ---
 
-*最后更新: 2026-03-06*
+*最后更新: 2026-03-07*

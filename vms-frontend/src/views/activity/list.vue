@@ -72,12 +72,12 @@
         <el-table-column prop="orgName" label="发起组织" width="150" />
         <el-table-column label="报名时间" width="200">
           <template #default="{ row }">
-            {{ formatTime(row.startTime) }} ~ {{ formatTime(row.endTime) }}
+            {{ formatTimeRange(row.startTime, row.endTime) }}
           </template>
         </el-table-column>
         <el-table-column label="报名情况" width="120">
           <template #default="{ row }">
-            <span :class="getCountClass(row)">
+            <span :class="getCountClass(row.totalCurrentCount, row.totalPlanCount)">
               {{ row.totalCurrentCount }}/{{ row.totalPlanCount }}
             </span>
           </template>
@@ -111,59 +111,7 @@
     </el-card>
 
     <!-- 活动详情弹窗 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="活动详情"
-      width="700px"
-      destroy-on-close
-    >
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="项目编号">
-          {{ detailData.projectCode }}
-        </el-descriptions-item>
-        <el-descriptions-item label="项目标题" :span="2">
-          {{ detailData.title }}
-        </el-descriptions-item>
-        <el-descriptions-item label="服务类别">
-          {{ detailData.categoryName }}
-        </el-descriptions-item>
-        <el-descriptions-item label="所属地区">
-          {{ detailData.regionName }}
-        </el-descriptions-item>
-        <el-descriptions-item label="发起组织">
-          {{ detailData.orgName }}
-        </el-descriptions-item>
-        <el-descriptions-item label="服务对象">
-          {{ detailData.targetAudience || '未设置' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="活动时间" :span="2">
-          {{ formatTime(detailData.startTime) }} ~ {{ formatTime(detailData.endTime) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="活动状态">
-          <el-tag :type="getStatusType(detailData.status)">
-            {{ detailData.statusName }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="项目描述" :span="2">
-          {{ detailData.description || '暂无描述' }}
-        </el-descriptions-item>
-      </el-descriptions>
-
-      <el-divider content-position="left">岗位信息</el-divider>
-
-      <el-table :data="detailData.positions" border style="width: 100%">
-        <el-table-column prop="posName" label="岗位名称" />
-        <el-table-column prop="planCount" label="计划人数" width="100" />
-        <el-table-column prop="currentCount" label="已报名" width="100" />
-        <el-table-column label="剩余名额" width="100">
-          <template #default="{ row }">
-            <span :class="{ 'text-danger': row.remainCount <= 0 }">
-              {{ row.remainCount }}
-            </span>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-dialog>
+    <ActivityDetailDialog v-model="detailVisible" :data="detailData" />
   </div>
 </template>
 
@@ -171,7 +119,10 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getActivityList, getActivityDetail } from '@/api/activity'
-import { getDict, getRegionList } from '@/api/system'
+import { getDict } from '@/api/system'
+import { useRegion } from '@/composables/useRegion'
+import { getStatusType, formatTimeRange, getCountClass } from '@/utils/activity'
+import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
 
 const loading = ref(false)
 const detailVisible = ref(false)
@@ -179,7 +130,8 @@ const detailData = ref({})
 const activityList = ref([])
 const total = ref(0)
 const categoryList = ref([])
-const regionOptions = ref([])
+
+const { regionOptions, regionProps, loadProvinces } = useRegion()
 
 const queryParams = reactive({
   page: 1,
@@ -190,28 +142,6 @@ const queryParams = reactive({
   regionCode: '',
   status: null
 })
-
-const regionProps = {
-  value: 'regionCode',
-  label: 'regionName',
-  children: 'children',
-  lazy: true,
-  lazyLoad: async (node, resolve) => {
-    const { level, value } = node
-    const parentCode = level === 0 ? '' : value
-    try {
-      const res = await getRegionList(parentCode)
-      const nodes = res.map(item => ({
-        regionCode: item.regionCode,
-        regionName: item.regionName,
-        leaf: item.level >= 3 || !item.hasChildren
-      }))
-      resolve(nodes)
-    } catch {
-      resolve([])
-    }
-  }
-}
 
 onMounted(async () => {
   await Promise.all([
@@ -225,20 +155,6 @@ async function loadCategories() {
   try {
     const res = await getDict('service_category')
     categoryList.value = res
-  } catch {
-    // ignore
-  }
-}
-
-async function loadProvinces() {
-  try {
-    const res = await getRegionList('')
-    regionOptions.value = res.map(item => ({
-      regionCode: item.regionCode,
-      regionName: item.regionName,
-      children: item.hasChildren ? [] : undefined,
-      leaf: !item.hasChildren
-    }))
   } catch {
     // ignore
   }
@@ -292,29 +208,6 @@ async function handleViewDetail(id) {
   } catch {
     ElMessage.error('加载活动详情失败')
   }
-}
-
-function formatTime(time) {
-  if (!time) return ''
-  return time.replace('T', ' ').slice(0, 16)
-}
-
-function getStatusType(status) {
-  const types = {
-    0: 'info',
-    1: 'success',
-    2: 'warning',
-    3: 'warning',
-    4: 'danger'
-  }
-  return types[status] || 'info'
-}
-
-function getCountClass(row) {
-  const ratio = row.totalCurrentCount / row.totalPlanCount
-  if (ratio >= 1) return 'text-danger'
-  if (ratio >= 0.8) return 'text-warning'
-  return 'text-success'
 }
 </script>
 
