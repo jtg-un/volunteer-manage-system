@@ -4,6 +4,18 @@
       <template #header>
         <span>欢迎使用志愿者管理系统</span>
       </template>
+
+      <!-- 用户头像和信息 -->
+      <div class="user-info-header">
+        <el-avatar :size="80" :src="userStore.userInfo?.avatarUrl" icon="UserFilled" />
+        <div class="user-info-text">
+          <h2>{{ userStore.userInfo?.realName || userStore.userInfo?.username }}</h2>
+          <p>{{ roleText }}</p>
+        </div>
+      </div>
+
+      <el-divider />
+
       <el-descriptions :column="2" border>
         <el-descriptions-item label="用户名">{{ userStore.userInfo?.username }}</el-descriptions-item>
         <el-descriptions-item label="姓名">{{ userStore.userInfo?.realName }}</el-descriptions-item>
@@ -76,5 +88,24 @@ const auditStatusType = computed(() => {
 <style scoped>
 .home-page {
   padding: 20px;
+}
+
+.user-info-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.user-info-text h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #303133;
+}
+
+.user-info-text p {
+  margin: 0;
+  font-size: 14px;
+  color: #909399;
 }
 </style>

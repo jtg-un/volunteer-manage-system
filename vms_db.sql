@@ -11,7 +11,7 @@
  Target Server Version : 80027 (8.0.27)
  File Encoding         : 65001
 
- Date: 07/03/2026 11:04:06
+ Date: 07/03/2026 13:11:31
 */
 
 SET NAMES utf8mb4;
@@ -50,7 +50,7 @@ INSERT INTO `activity` VALUES (3, 1, 'P202603060001', '活动03', 'charity', '31
 INSERT INTO `activity` VALUES (4, 1, 'P202603060002', '活动04', 'charity', '110107', '老人', '2026-03-30 16:00:00', '2026-04-15 16:00:00', 1, '', NULL, NULL);
 INSERT INTO `activity` VALUES (5, 1, 'P202603060003', '1234', 'education', '3204', '123', '2026-03-07 16:00:00', '2026-03-20 16:00:00', 4, '', '原因1', NULL);
 INSERT INTO `activity` VALUES (6, 1, 'P202603060004', '12345', 'charity', '310107', '', '2026-03-22 16:00:00', '2026-03-30 16:00:00', 2, '描述', NULL, NULL);
-INSERT INTO `activity` VALUES (7, 1, 'P202603060005', '项目一', 'culture', '3204', 'er', '2026-02-28 16:00:00', '2026-03-23 16:00:00', 0, '', NULL, NULL);
+INSERT INTO `activity` VALUES (7, 1, 'P202603060005', '项目一', 'culture', '3204', 'er', '2026-02-28 16:00:00', '2026-03-23 16:00:00', 1, '', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for activity_position

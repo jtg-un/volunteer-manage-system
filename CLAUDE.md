@@ -23,7 +23,11 @@ vsm/
 │   │       │   ├── OrgRegisterDTO.java
 │   │       │   ├── OrgUpdateDTO.java
 │   │       │   ├── VolunteerRegisterDTO.java
+│   │       │   ├── UserUpdateDTO.java
+│   │       │   ├── PasswordUpdateDTO.java
+│   │       │   ├── UserStatusDTO.java
 │   │       │   ├── ActivityPublishDTO.java
+│   │       │   ├── ActivityUpdateDTO.java
 │   │       │   ├── ActivityQueryDTO.java
 │   │       │   ├── ActivityAuditDTO.java
 │   │       │   └── ActivityStatusDTO.java
@@ -513,14 +517,90 @@ import axios from 'axios'
 
 ---
 
+## 垂直切片五：用户管理与活动完善 [已完成]
+
+### 后端实现
+
+#### 用户模块补齐 (vms-service-user)
+- [x] UserSelfService: 用户个人服务
+  - 更新个人信息（头像/手机/姓名）
+  - 修改密码（验证原密码）
+- [x] UserAdminService: 管理员用户服务
+  - 获取用户列表（支持角色筛选）
+  - 更新用户状态（封禁/启用）
+  - 不允许修改管理员账号状态
+- [x] DTO 创建：UserUpdateDTO, PasswordUpdateDTO, UserStatusDTO
+- [x] UserInfoVO 添加 status 字段
+
+#### 活动模块补齐 (vms-service-activity)
+- [x] OrgActivityService 新增方法：
+  - updateActivity: 更新活动（仅限待启动状态）
+  - cancelActivity: 取消活动（含事务逻辑，删除报名、岗位、活动）
+- [x] DTO 创建：ActivityUpdateDTO（支持岗位新增/更新/删除）
+- [x] updatePositions 方法：智能处理岗位的增删改
+
+### 后端 API 接口
+
+#### 用户服务 (8081)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| PUT | /api/user/info | 更新个人信息 |
+| PUT | /api/user/password | 修改密码 |
+| GET | /api/admin/user/list | 管理员获取用户列表 |
+| PUT | /api/admin/user/status | 管理员更新用户状态 |
+
+#### 活动服务 (8083)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| PUT | /api/activity/update | 更新活动（待启动状态） |
+| DELETE | /api/activity/cancel/{activityId} | 取消活动 |
+
+### 前端实现
+
+#### API 封装
+- [x] `src/api/user.js`: 用户相关 API
+  - updateUserInfo: 更新个人信息
+  - updatePassword: 修改密码
+  - getUserList: 获取用户列表
+  - updateUserStatus: 更新用户状态
+- [x] `src/api/activity.js`: 新增接口
+  - updateActivity: 更新活动
+  - cancelActivity: 取消活动
+
+#### 页面实现
+- [x] `src/views/user/profile.vue`: 个人中心页面
+  - 更新个人信息表单
+  - 修改密码表单
+- [x] `src/views/admin/userManage.vue`: 管理员用户管理页面
+  - 用户列表（支持角色筛选）
+  - 封禁/启用操作
+- [x] `src/views/org/myActivity.vue`: 更新
+  - 添加编辑按钮（仅待启动状态可编辑）
+  - 添加取消按钮（待启动/运行中可取消）
+  - 编辑活动弹窗（支持岗位增删改）
+
+#### 路由配置
+- [x] 添加 `/user/profile` 路由
+- [x] 添加 `/admin/user-manage` 路由
+
+#### 侧边栏菜单
+- [x] 添加「个人中心」菜单项
+- [x] 添加「用户管理」菜单项（管理员）
+
+#### Vite 代理配置
+- [x] 添加 `/api/user` 代理到 8081
+- [x] 添加 `/api/admin/user` 代理到 8081
+
+---
+
 ## 待开发功能
 
-### 垂直切片五：志愿者报名与签到
+### 垂直切片六：志愿者报名与签到
 - [ ] 志愿者报名活动
 - [ ] 签到/签退功能
 - [ ] 时长记录
 
-### 垂直切片六：评价与积分
+### 垂直切片七：评价与积分
 - [ ] 组织评价志愿者
 - [ ] 积分计算与展示
 

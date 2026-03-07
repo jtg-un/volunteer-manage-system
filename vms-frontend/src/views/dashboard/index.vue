@@ -19,6 +19,11 @@
           <span>活动列表</span>
         </el-menu-item>
 
+        <el-menu-item index="/user/profile">
+          <el-icon><User /></el-icon>
+          <span>个人中心</span>
+        </el-menu-item>
+
         <!-- 组织负责人菜单 -->
         <el-sub-menu v-if="userStore.isOrg" index="org">
           <template #title>
@@ -38,6 +43,7 @@
           </template>
           <el-menu-item index="/admin/org-audit">组织审核</el-menu-item>
           <el-menu-item index="/admin/activity-audit">活动审核</el-menu-item>
+          <el-menu-item index="/admin/user-manage">用户管理</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>
@@ -47,7 +53,7 @@
           <span class="title">志愿者管理系统</span>
           <el-dropdown @command="handleCommand">
             <span class="user-info">
-              <el-avatar :size="32" icon="UserFilled" />
+              <el-avatar :size="32" :src="userStore.userInfo?.avatarUrl" icon="UserFilled" />
               <span class="username">{{ userStore.userInfo?.realName || userStore.userInfo?.username }}</span>
               <el-icon><ArrowDown /></el-icon>
             </span>
@@ -75,7 +81,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { HomeFilled, ArrowDown, OfficeBuilding, Checked, List, Setting } from '@element-plus/icons-vue'
+import { HomeFilled, ArrowDown, OfficeBuilding, Checked, List, Setting, User } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const route = useRoute()

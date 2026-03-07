@@ -3,6 +3,7 @@ package com.vms.activity.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vms.common.dto.ActivityPublishDTO;
 import com.vms.common.dto.ActivityStatusDTO;
+import com.vms.common.dto.ActivityUpdateDTO;
 import com.vms.common.vo.MyActivityListVO;
 
 /**
@@ -18,6 +19,20 @@ public interface OrgActivityService {
      * @return 活动ID
      */
     Long publish(Long orgId, ActivityPublishDTO dto);
+
+    /**
+     * 更新活动（仅限待启动状态）
+     * @param orgId 组织ID
+     * @param dto 更新信息
+     */
+    void update(Long orgId, ActivityUpdateDTO dto);
+
+    /**
+     * 取消活动
+     * @param activityId 活动ID
+     * @param orgId 组织ID
+     */
+    void cancel(Long activityId, Long orgId);
 
     /**
      * 获取组织的活动列表

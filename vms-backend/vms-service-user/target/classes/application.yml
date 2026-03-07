@@ -14,6 +14,10 @@ spring:
       initial-size: 5
       min-idle: 5
       max-active: 20
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
 
 mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
@@ -27,6 +31,13 @@ mybatis-plus:
 jwt:
   secret: vms-secret-key-must-be-at-least-256-bits-long-for-security
   expiration: 86400000
+
+# 文件上传配置
+file:
+  upload:
+    path: D:/Administrator/Desktop/bishe/vsm/vms/vms-upload/avatar/
+  access:
+    url-prefix: /uploads/avatar/
 
 logging:
   level:

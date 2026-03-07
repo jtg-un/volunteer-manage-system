@@ -38,3 +38,13 @@ export function getMyActivities(params) {
 export function updateActivityStatus(data) {
   return request.put('/activity/my/status', data)
 }
+
+// 更新活动（仅限待启动状态）
+export function updateActivity(data) {
+  return request.put('/activity/update', data)
+}
+
+// 取消活动
+export function cancelActivity(activityId) {
+  return request.delete(`/activity/cancel/${activityId}`)
+}

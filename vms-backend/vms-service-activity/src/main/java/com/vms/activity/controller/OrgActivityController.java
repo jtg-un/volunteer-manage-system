@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vms.common.context.UserContext;
 import com.vms.common.dto.ActivityPublishDTO;
 import com.vms.common.dto.ActivityStatusDTO;
+import com.vms.common.dto.ActivityUpdateDTO;
 import com.vms.common.exception.BusinessException;
 import com.vms.common.result.Result;
 import com.vms.common.vo.MyActivityListVO;
@@ -45,6 +46,36 @@ public class OrgActivityController {
 
         Long activityId = orgActivityService.publish(org.getOrgId(), dto);
         return Result.success("活动发布成功，等待审核", activityId);
+    }
+
+    /**
+     * 更新活动（仅限待启动状态）
+     */
+    @PutMapping("/update")
+    public Result<Void> update(
+            @Valid @RequestBody ActivityUpdateDTO dto,
+            @RequestHeader("Authorization") String authorization) {
+
+        Long userId = userContext.requireOrgAndGetUserId(authorization);
+        Organization org = getOrgByUserId(userId);
+
+        orgActivityService.update(org.getOrgId(), dto);
+        return Result.successMsg("活动更新成功");
+    }
+
+    /**
+     * 取消活动
+     */
+    @DeleteMapping("/cancel/{activityId}")
+    public Result<Void> cancel(
+            @PathVariable("activityId") Long activityId,
+            @RequestHeader("Authorization") String authorization) {
+
+        Long userId = userContext.requireOrgAndGetUserId(authorization);
+        Organization org = getOrgByUserId(userId);
+
+        orgActivityService.cancel(activityId, org.getOrgId());
+        return Result.successMsg("活动已取消");
     }
 
     /**

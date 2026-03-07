@@ -23,6 +23,9 @@ public class UserInfoVO {
 
     private String avatarUrl;
 
+    /** 状态: 0禁用 1正常 */
+    private Integer status;
+
     /** 组织ID（仅组织负责人） */
     private Long orgId;
 

@@ -33,6 +33,12 @@ const routes = [
         meta: { title: '活动列表' }
       },
       {
+        path: 'user/profile',
+        name: 'UserProfile',
+        component: () => import('@/views/user/profile.vue'),
+        meta: { title: '个人中心' }
+      },
+      {
         path: 'org/profile',
         name: 'OrgProfile',
         component: () => import('@/views/org/profile.vue'),
@@ -61,6 +67,12 @@ const routes = [
         name: 'ActivityAudit',
         component: () => import('@/views/admin/activityAudit.vue'),
         meta: { title: '活动审核', role: 2 }
+      },
+      {
+        path: 'admin/user-manage',
+        name: 'UserManage',
+        component: () => import('@/views/admin/userManage.vue'),
+        meta: { title: '用户管理', role: 2 }
       }
     ]
   }

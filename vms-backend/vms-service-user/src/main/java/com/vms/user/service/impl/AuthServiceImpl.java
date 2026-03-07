@@ -155,6 +155,7 @@ public class AuthServiceImpl implements AuthService {
         vo.setPhone(user.getPhone());
         vo.setEmail(user.getEmail());
         vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setStatus(user.getStatus());
 
         // 如果是组织负责人，查询组织信息
         if (user.getRole() == 1) {

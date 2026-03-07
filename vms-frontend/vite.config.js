@@ -12,12 +12,29 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // 用户服务 (8081): 登录、注册、组织管理
+      // 用户服务 (8081): 登录、注册、组织管理、用户管理、文件上传
       '/api/auth': {
         target: 'http://localhost:8081',
         changeOrigin: true
       },
       '/api/org': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/api/user': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/api/admin/user': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/api/file': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      // 静态资源：头像访问
+      '/uploads': {
         target: 'http://localhost:8081',
         changeOrigin: true
       },
