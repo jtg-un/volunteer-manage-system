@@ -546,6 +546,8 @@ import axios from 'axios'
 |------|------|------|
 | PUT | /api/user/info | 更新个人信息 |
 | PUT | /api/user/password | 修改密码 |
+| POST | /api/file/avatar | 上传头像 |
+| GET | /uploads/avatar/** | 访问头像静态资源 |
 | GET | /api/admin/user/list | 管理员获取用户列表 |
 | PUT | /api/admin/user/status | 管理员更新用户状态 |
 
@@ -571,6 +573,11 @@ import axios from 'axios'
 - [x] `src/views/user/profile.vue`: 个人中心页面
   - 更新个人信息表单
   - 修改密码表单
+  - 头像上传组件（支持拖拽上传、格式校验）
+- [x] `src/views/dashboard/home.vue`: 首页
+  - 显示用户头像和信息卡片
+- [x] `src/views/dashboard/index.vue`: 布局框架
+  - 右上角显示用户头像
 - [x] `src/views/admin/userManage.vue`: 管理员用户管理页面
   - 用户列表（支持角色筛选）
   - 封禁/启用操作
@@ -590,6 +597,37 @@ import axios from 'axios'
 #### Vite 代理配置
 - [x] 添加 `/api/user` 代理到 8081
 - [x] 添加 `/api/admin/user` 代理到 8081
+- [x] 添加 `/api/file` 代理到 8081
+- [x] 添加 `/uploads` 代理到 8081（静态资源访问）
+
+### 文件上传配置
+
+#### 后端配置 (application.yml)
+```yaml
+file:
+  upload:
+    path: D:/Administrator/Desktop/bishe/vsm/vms/vms-upload/avatar/
+  access:
+    url-prefix: /uploads/avatar/
+```
+
+#### 存储规则
+- **物理路径**: `{upload.path}年/月/用户ID_时间戳.扩展名`
+- **示例**: `D:/Administrator/Desktop/bishe/vsm/vms/vms-upload/avatar/2026/03/1_1709800000000.jpg`
+- **访问URL**: `/uploads/avatar/2026/03/1_1709800000000.jpg`
+
+#### 新增后端文件
+| 文件 | 说明 |
+|------|------|
+| `config/WebMvcConfig.java` | 静态资源映射配置 |
+| `service/FileUploadService.java` | 文件上传服务接口 |
+| `service/impl/FileUploadServiceImpl.java` | 文件上传服务实现 |
+| `controller/FileUploadController.java` | 文件上传控制器 |
+
+#### 上传限制
+- 支持格式：JPG、PNG、GIF、WEBP
+- 最大大小：5MB
+- 按日期分目录存储
 
 ---
 
