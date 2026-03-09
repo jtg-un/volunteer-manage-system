@@ -19,6 +19,16 @@
           <span>活动列表</span>
         </el-menu-item>
 
+        <!-- 志愿者菜单 -->
+        <el-sub-menu v-if="userStore.isVolunteer" index="volunteer">
+          <template #title>
+            <el-icon><User /></el-icon>
+            <span>志愿者中心</span>
+          </template>
+          <el-menu-item index="/volunteer/my-registrations">我的报名</el-menu-item>
+          <el-menu-item index="/volunteer/records">时长记录</el-menu-item>
+        </el-sub-menu>
+
         <el-menu-item index="/user/profile">
           <el-icon><User /></el-icon>
           <span>个人中心</span>
@@ -33,6 +43,7 @@
           <el-menu-item index="/org/profile">组织信息</el-menu-item>
           <el-menu-item index="/org/publish-activity">发布活动</el-menu-item>
           <el-menu-item index="/org/my-activity">我的活动</el-menu-item>
+          <el-menu-item index="/org/registrations">报名管理</el-menu-item>
         </el-sub-menu>
 
         <!-- 管理员菜单 -->

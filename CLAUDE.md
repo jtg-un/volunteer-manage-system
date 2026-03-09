@@ -631,16 +631,179 @@ file:
 
 ---
 
-## 待开发功能
+## 垂直切片六：志愿者报名与签到 [已完成]
 
-### 垂直切片六：志愿者报名与签到
-- [ ] 志愿者报名活动
-- [ ] 签到/签退功能
-- [ ] 时长记录
+### 后端实现
+
+#### 实体与 Mapper
+- [x] CheckinLog 实体类：签到签退记录
+- [x] VolunteerRecord 实体类：志愿时长记录
+- [x] CheckinLogMapper：考勤流水 Mapper
+- [x] VolunteerRecordMapper：时长记录 Mapper
+
+#### DTO/VO 创建
+- [x] RegistrationDTO：志愿者报名 DTO
+- [x] RegistrationAuditDTO：报名审核 DTO
+- [x] HoursConfirmDTO：时长确认 DTO
+- [x] RegistrationListVO：报名列表 VO（组织端查看）
+- [x] MyRegistrationVO：我的报名 VO（志愿者端查看）
+- [x] VolunteerRecordVO：时长记录 VO
+- [x] VolunteerStatsVO：志愿者统计 VO
+
+#### 服务层实现
+- [x] VolunteerRegistrationService：志愿者报名服务
+  - 报名活动（检查活动状态、岗位余量、重复报名）
+  - 取消报名（检查签到记录）
+  - 获取我的报名列表
+  - 获取志愿者统计数据（累计时长、积分、活动次数）
+- [x] OrgRegistrationService：组织报名管理服务
+  - 获取活动的报名列表（支持状态筛选）
+  - 审核报名（通过/拒绝，更新岗位人数）
+  - 确认发放时长（创建志愿时长记录）
+- [x] CheckinService：签到签退服务
+  - 签到（检查活动状态、重复签到）
+  - 签退（检查签到状态、重复签退）
+  - 获取签到状态
+- [x] VolunteerRecordService：时长记录服务
+  - 获取志愿者的时长记录列表
+
+#### Controller 层
+- [x] VolunteerController：志愿者端控制器
+  - POST `/api/volunteer/register` - 报名活动
+  - DELETE `/api/volunteer/register/{regId}` - 取消报名
+  - GET `/api/volunteer/my/registrations` - 我的报名列表
+  - GET `/api/volunteer/my/stats` - 志愿者统计
+  - POST `/api/volunteer/checkin/{regId}` - 签到
+  - POST `/api/volunteer/checkout/{regId}` - 签退
+  - GET `/api/volunteer/checkin/status/{regId}` - 签到状态
+  - GET `/api/volunteer/my/records` - 我的时长记录
+- [x] OrgRegistrationController：组织端报名管理控制器
+  - GET `/api/org/registration/list/{activityId}` - 活动报名列表
+  - POST `/api/org/registration/audit` - 审核报名
+  - POST `/api/org/registration/hours` - 发放时长
+
+### 后端 API 接口
+
+#### 志愿者端 (8083)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| POST | /api/volunteer/register | 报名活动 |
+| DELETE | /api/volunteer/register/{regId} | 取消报名 |
+| GET | /api/volunteer/my/registrations | 我的报名列表 |
+| GET | /api/volunteer/my/stats | 志愿者统计 |
+| POST | /api/volunteer/checkin/{regId} | 签到 |
+| POST | /api/volunteer/checkout/{regId} | 签退 |
+| GET | /api/volunteer/checkin/status/{regId} | 签到状态 |
+| GET | /api/volunteer/my/records | 我的时长记录 |
+
+#### 组织端 (8083)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/org/registration/list/{activityId} | 活动报名列表 |
+| POST | /api/org/registration/audit | 审核报名 |
+| POST | /api/org/registration/hours | 发放时长 |
+
+### 前端实现
+
+#### API 封装
+- [x] `src/api/volunteer.js`: 志愿者端 API
+  - registerActivity: 报名活动
+  - cancelRegistration: 取消报名
+  - getMyRegistrations: 我的报名列表
+  - getVolunteerStats: 志愿者统计
+  - checkIn/checkOut: 签到签退
+  - getMyRecords: 我的时长记录
+- [x] `src/api/orgReg.js`: 组织端报名管理 API
+  - getRegistrations: 获取报名列表
+  - auditRegistration: 审核报名
+  - confirmHours: 发放时长
+
+#### 页面实现
+- [x] `src/views/volunteer/myRegistrations.vue`: 我的报名页面
+  - 统计卡片（累计时长、积分、活动次数、本月时长）
+  - 报名列表（状态显示、签到状态、时长显示）
+  - 签到/签退操作
+  - 取消报名功能
+- [x] `src/views/volunteer/records.vue`: 时长记录页面
+  - 时长记录列表
+  - 活动信息展示
+- [x] `src/views/org/registrations.vue`: 组织报名管理页面
+  - 活动选择器
+  - 状态筛选（全部/待审核/已通过/已拒绝）
+  - 报名列表（志愿者信息、签到状态、时长发放状态）
+  - 审核操作（通过/拒绝）
+  - 发放时长弹窗（支持自动计算积分）
+- [x] `src/views/activity/list.vue`: 更新活动列表页面
+  - 志愿者可在活动详情中直接报名
+- [x] `src/components/activity/ActivityDetailDialog.vue`: 更新活动详情弹窗
+  - 添加报名功能（志愿者可见）
+  - 岗位报名按钮
+
+#### 路由配置
+- [x] 添加 `/volunteer/my-registrations` 路由（志愿者）
+- [x] 添加 `/volunteer/records` 路由（志愿者）
+- [x] 添加 `/org/registrations` 路由（组织）
+
+#### 侧边栏菜单
+- [x] 志愿者菜单：我的报名、时长记录
+- [x] 组织菜单：报名管理
+
+#### Vite 代理配置
+- [x] 添加 `/api/volunteer` 代理到 8083
+- [x] 添加 `/api/org/registration` 代理到 8083
+
+### 单元测试
+
+#### 测试文件
+- [x] `VolunteerRegistrationServiceTest.java`: 志愿者报名服务测试
+  - 报名成功测试
+  - 活动不存在测试
+  - 活动未开始测试
+  - 岗位已满测试
+  - 重复报名测试
+  - 取消报名测试
+- [x] `CheckinServiceTest.java`: 签到签退服务测试
+  - 签到成功测试
+  - 重复签到测试
+  - 签退成功测试
+  - 未签到先签退测试
+  - 重复签退测试
+- [x] `OrgRegistrationServiceTest.java`: 组织报名管理服务测试
+  - 审核通过/拒绝测试
+  - 发放时长成功测试
+  - 重复发放时长测试
+
+### 业务规则
+1. **报名规则**:
+   - 活动必须处于运行中状态
+   - 岗位必须有余量
+   - 同一用户不能重复报名同一活动
+   - 报名后状态为待审核
+
+2. **审核规则**:
+   - 只有待审核状态可审核
+   - 拒绝时需减少岗位已报名人数
+   - 通过后岗位人数不变
+
+3. **签到规则**:
+   - 报名必须已通过审核
+   - 活动必须处于运行中状态
+   - 不能重复签到/签退
+   - 必须先签到才能签退
+
+4. **时长发放规则**:
+   - 报名必须已通过
+   - 必须已签退
+   - 不能重复发放
+   - 积分默认按10分/小时计算
+
+---
+
+## 待开发功能
 
 ### 垂直切片七：评价与积分
 - [ ] 组织评价志愿者
-- [ ] 积分计算与展示
+- [ ] 积分计算与展示优化
 
 ---
 
@@ -690,4 +853,4 @@ npm run dev
 
 ---
 
-*最后更新: 2026-03-07*
+*最后更新: 2026-03-09*

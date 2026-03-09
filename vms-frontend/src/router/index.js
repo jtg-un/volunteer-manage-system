@@ -38,6 +38,19 @@ const routes = [
         component: () => import('@/views/user/profile.vue'),
         meta: { title: '个人中心' }
       },
+      // 志愿者端路由
+      {
+        path: 'volunteer/my-registrations',
+        name: 'MyRegistrations',
+        component: () => import('@/views/volunteer/myRegistrations.vue'),
+        meta: { title: '我的报名', role: 0 }
+      },
+      {
+        path: 'volunteer/records',
+        name: 'VolunteerRecords',
+        component: () => import('@/views/volunteer/records.vue'),
+        meta: { title: '时长记录', role: 0 }
+      },
       {
         path: 'org/profile',
         name: 'OrgProfile',
@@ -55,6 +68,12 @@ const routes = [
         name: 'MyActivity',
         component: () => import('@/views/org/myActivity.vue'),
         meta: { title: '我的活动', role: 1 }
+      },
+      {
+        path: 'org/registrations',
+        name: 'OrgRegistrations',
+        component: () => import('@/views/org/registrations.vue'),
+        meta: { title: '报名管理', role: 1 }
       },
       {
         path: 'admin/org-audit',

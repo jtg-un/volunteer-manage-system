@@ -12,9 +12,14 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // 用户服务 (8081): 登录、注册、组织管理、用户管理、文件上传
+      // 用户服务 (8081): 登录、注册、用户管理、文件上传
       '/api/auth': {
         target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      // 组织端报名管理 (8083) - 必须放在 /api/org 前面
+      '/api/org/registration': {
+        target: 'http://localhost:8083',
         changeOrigin: true
       },
       '/api/org': {
@@ -40,6 +45,11 @@ export default defineConfig({
       },
       // 活动服务 (8083): 活动管理
       '/api/activity': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
+      // 志愿者端接口 (8083)
+      '/api/volunteer': {
         target: 'http://localhost:8083',
         changeOrigin: true
       },

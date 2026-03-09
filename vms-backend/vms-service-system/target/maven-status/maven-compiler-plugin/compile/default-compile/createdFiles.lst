@@ -1,0 +1,7 @@
+com\vms\system\controller\DictController.class
+com\vms\system\service\impl\DictServiceImpl.class
+com\vms\system\service\DictService.class
+com\vms\system\SystemServiceApplication.class
+com\vms\system\controller\RegionController.class
+com\vms\system\service\RegionService.class
+com\vms\system\service\impl\RegionServiceImpl.class

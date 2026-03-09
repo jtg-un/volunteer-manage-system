@@ -111,19 +111,27 @@
     </el-card>
 
     <!-- 活动详情弹窗 -->
-    <ActivityDetailDialog v-model="detailVisible" :data="detailData" />
+    <ActivityDetailDialog
+      v-model="detailVisible"
+      :data="detailData"
+      :show-register="userStore.isVolunteer && detailData.status === 1"
+      @register="handleRegister"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getActivityList, getActivityDetail } from '@/api/activity'
 import { getDict } from '@/api/system'
+import { registerActivity } from '@/api/volunteer'
 import { useRegion } from '@/composables/useRegion'
 import { getStatusType, formatTimeRange, getCountClass } from '@/utils/activity'
+import { useUserStore } from '@/stores/user'
 import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
 
+const userStore = useUserStore()
 const loading = ref(false)
 const detailVisible = ref(false)
 const detailData = ref({})
@@ -207,6 +215,31 @@ async function handleViewDetail(id) {
     detailVisible.value = true
   } catch {
     ElMessage.error('加载活动详情失败')
+  }
+}
+
+async function handleRegister(data) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要报名岗位「${data.posName}」吗？`,
+      '报名确认',
+      {
+        confirmButtonText: '确定报名',
+        cancelButtonText: '取消',
+        type: 'info'
+      }
+    )
+    await registerActivity({
+      activityId: data.activityId,
+      posId: data.posId
+    })
+    ElMessage.success('报名成功，请等待审核')
+    detailVisible.value = false
+    loadActivityList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('报名失败:', error)
+    }
   }
 }
 </script>

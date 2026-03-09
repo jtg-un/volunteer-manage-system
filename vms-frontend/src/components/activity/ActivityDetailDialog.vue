@@ -57,6 +57,19 @@
           </span>
         </template>
       </el-table-column>
+      <el-table-column label="操作" width="100" v-if="showRegister">
+        <template #default="{ row }">
+          <el-button
+            v-if="row.remainCount > 0"
+            type="primary"
+            size="small"
+            @click="handleRegister(row)"
+          >
+            报名
+          </el-button>
+          <span v-else class="text-muted">已满</span>
+        </template>
+      </el-table-column>
     </el-table>
 
     <template #footer>
@@ -82,10 +95,14 @@ const props = defineProps({
   showCreateTime: {
     type: Boolean,
     default: false
+  },
+  showRegister: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'register'])
 
 const visible = computed({
   get: () => props.modelValue,
@@ -95,10 +112,22 @@ const visible = computed({
 function handleClose() {
   emit('update:modelValue', false)
 }
+
+function handleRegister(position) {
+  emit('register', {
+    activityId: props.data.activityId,
+    posId: position.posId,
+    posName: position.posName
+  })
+}
 </script>
 
 <style scoped>
 .text-danger {
   color: #f56c6c;
+}
+
+.text-muted {
+  color: #909399;
 }
 </style>
