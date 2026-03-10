@@ -35,7 +35,7 @@ jwt:
 # 文件上传配置
 file:
   upload:
-    path: D:/Administrator/Desktop/bishe/vsm/vms/vms-upload/avatar/
+    path: ${user.dir}/vms-upload/avatar/
   access:
     url-prefix: /uploads/avatar/
 
