@@ -52,6 +52,12 @@ const routes = [
         meta: { title: '时长记录', role: 0 }
       },
       {
+        path: 'volunteer/my-evaluations',
+        name: 'MyEvaluations',
+        component: () => import('@/views/volunteer/myEvaluations.vue'),
+        meta: { title: '我的评价', role: 0 }
+      },
+      {
         path: 'org/profile',
         name: 'OrgProfile',
         component: () => import('@/views/org/profile.vue'),

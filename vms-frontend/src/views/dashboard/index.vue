@@ -27,6 +27,7 @@
           </template>
           <el-menu-item index="/volunteer/my-registrations">我的报名</el-menu-item>
           <el-menu-item index="/volunteer/records">时长记录</el-menu-item>
+          <el-menu-item index="/volunteer/my-evaluations">我的评价</el-menu-item>
         </el-sub-menu>
 
         <el-menu-item index="/user/profile">

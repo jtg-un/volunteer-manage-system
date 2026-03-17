@@ -1,7 +1,7 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : spbt
+ Source Server         : bysx
  Source Server Type    : MySQL
  Source Server Version : 80027 (8.0.27)
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80027 (8.0.27)
  File Encoding         : 65001
 
- Date: 07/03/2026 14:11:55
+ Date: 17/03/2026 12:56:52
 */
 
 SET NAMES utf8mb4;
@@ -39,7 +39,7 @@ CREATE TABLE `activity`  (
   UNIQUE INDEX `project_code`(`project_code` ASC) USING BTREE,
   INDEX `fk_act_org`(`org_id` ASC) USING BTREE,
   CONSTRAINT `fk_act_org` FOREIGN KEY (`org_id`) REFERENCES `organization` (`org_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '志愿项目表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '志愿项目表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of activity
@@ -50,6 +50,7 @@ INSERT INTO `activity` VALUES (3, 1, 'P202603060001', '活动03', 'charity', '31
 INSERT INTO `activity` VALUES (4, 1, 'P202603060002', '活动04', 'charity', '110107', '老人', '2026-03-30 16:00:00', '2026-04-15 16:00:00', 2, '', NULL, NULL);
 INSERT INTO `activity` VALUES (5, 1, 'P202603060003', '1234', 'education', '3204', '123', '2026-03-07 16:00:00', '2026-03-20 16:00:00', 4, '', '原因1', NULL);
 INSERT INTO `activity` VALUES (6, 1, 'P202603060004', '12345', 'charity', '310107', '', '2026-03-22 16:00:00', '2026-03-30 16:00:00', 2, '描述', NULL, NULL);
+INSERT INTO `activity` VALUES (8, 1, 'P202603070001', '测试发布01', 'charity', '12', '对象', '2026-03-01 16:00:00', '2026-03-29 16:00:00', 2, '描述', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for activity_position
@@ -64,7 +65,7 @@ CREATE TABLE `activity_position`  (
   PRIMARY KEY (`pos_id`) USING BTREE,
   INDEX `fk_pos_act`(`activity_id` ASC) USING BTREE,
   CONSTRAINT `fk_pos_act` FOREIGN KEY (`activity_id`) REFERENCES `activity` (`activity_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '活动岗位表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '活动岗位表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of activity_position
@@ -76,6 +77,7 @@ INSERT INTO `activity_position` VALUES (4, 3, '岗位01', 1, 0);
 INSERT INTO `activity_position` VALUES (5, 4, '岗位9', 1, 0);
 INSERT INTO `activity_position` VALUES (6, 5, '123', 1, 0);
 INSERT INTO `activity_position` VALUES (7, 6, '1234', 1, 0);
+INSERT INTO `activity_position` VALUES (10, 8, '岗位1', 5, 2);
 
 -- ----------------------------
 -- Table structure for checkin_log
@@ -89,11 +91,15 @@ CREATE TABLE `checkin_log`  (
   PRIMARY KEY (`log_id`) USING BTREE,
   INDEX `fk_log_reg`(`reg_id` ASC) USING BTREE,
   CONSTRAINT `fk_log_reg` FOREIGN KEY (`reg_id`) REFERENCES `registration` (`reg_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '考勤流水表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '考勤流水表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of checkin_log
 -- ----------------------------
+INSERT INTO `checkin_log` VALUES (1, 1, '2026-03-09 22:23:30', 0);
+INSERT INTO `checkin_log` VALUES (2, 1, '2026-03-09 22:23:42', 1);
+INSERT INTO `checkin_log` VALUES (3, 2, '2026-03-09 22:37:05', 0);
+INSERT INTO `checkin_log` VALUES (4, 2, '2026-03-09 22:37:11', 1);
 
 -- ----------------------------
 -- Table structure for evaluation
@@ -106,6 +112,7 @@ CREATE TABLE `evaluation`  (
   `score_cooperation` decimal(3, 2) NULL DEFAULT 5.00,
   `score_execution` decimal(3, 2) NULL DEFAULT 5.00,
   `comment` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评价时间',
   PRIMARY KEY (`eval_id`) USING BTREE,
   INDEX `fk_eval_reg`(`reg_id` ASC) USING BTREE,
   CONSTRAINT `fk_eval_reg` FOREIGN KEY (`reg_id`) REFERENCES `registration` (`reg_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -162,11 +169,13 @@ CREATE TABLE `registration`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`reg_id`) USING BTREE,
   UNIQUE INDEX `uk_user_act`(`user_id` ASC, `activity_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '报名表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '报名表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of registration
 -- ----------------------------
+INSERT INTO `registration` VALUES (1, 1, 8, 10, 1, NULL);
+INSERT INTO `registration` VALUES (2, 10, 8, 10, 1, '2026-03-09 22:32:47');
 
 -- ----------------------------
 -- Table structure for sys_dict
@@ -402,16 +411,16 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 'zyz01', '$2a$10$0TvE1LfBKreCR07BDjhoE.OCaGitV9HTdsMmbUMG1qxqQoQD6EhYK', '李子硕', 0, '13598323186', '2695375620@qq.com', NULL, 1, NULL);
+INSERT INTO `sys_user` VALUES (1, 'zyz01', '$2a$10$0TvE1LfBKreCR07BDjhoE.OCaGitV9HTdsMmbUMG1qxqQoQD6EhYK', '李子硕', 0, '13598323186', '2695375620@qq.com', '/uploads/avatar/2026/03/1_1773469170177.png', 1, NULL);
 INSERT INTO `sys_user` VALUES (2, 'zyz02', '$2a$10$ixf2BjcweGNbhnkz9qg9xuImlb8Rl2/PPQAMoYcASdWxVxriZSfda', '李一', 0, '13589323186', '', NULL, 1, NULL);
-INSERT INTO `sys_user` VALUES (3, 'zz01', '$2a$10$vUotgDu.WwLkoqccQ8aBYeZfBcvvRldyQRI8msgZbgpx16WMSHAse', '王一', 1, '13598323186', '', '/uploads/avatar/2026/03/3_1772862387120.png', 1, NULL);
+INSERT INTO `sys_user` VALUES (3, 'zz01', '$2a$10$vUotgDu.WwLkoqccQ8aBYeZfBcvvRldyQRI8msgZbgpx16WMSHAse', '王一', 1, '13598323186', '', '', 1, NULL);
 INSERT INTO `sys_user` VALUES (4, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', 2, NULL, NULL, NULL, 1, '2026-03-05 20:47:21');
 INSERT INTO `sys_user` VALUES (5, 'admin01', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '系统管理员01', 2, '13598323185', '', NULL, 1, NULL);
 INSERT INTO `sys_user` VALUES (6, 'zz02', '$2a$10$DojhG8ZBfCPjxuByp0r1OOTRhKNmG7Z68873jJQfP5jl47mOxBTrm', '李二', 1, '15568923189', '', NULL, 1, NULL);
 INSERT INTO `sys_user` VALUES (7, 'zz03', '$2a$10$V19g2xRP6/MDGkWd3Yu/NOlU52OIulVEUK2xSKpOA6KPaiArfBBQO', '张三', 1, '13058397590', '2301@qq.com', NULL, 0, NULL);
 INSERT INTO `sys_user` VALUES (8, 'zyz03', '$2a$10$ltKxnoDRTJiVLqo2ECEgueHMUABZrGWfwryH2RmiIZXv4S.m0xVS.', '志愿者三', 0, '13856783456', '', NULL, 1, NULL);
 INSERT INTO `sys_user` VALUES (9, 'zz04', '$2a$10$IlrICNSciBevMt..rHBr5eqG3pEBVA9KXAA3qA.NoZHkl7r8ZY4HK', '组织4', 1, '13498756478', '', NULL, 1, NULL);
-INSERT INTO `sys_user` VALUES (10, 'zyz08', '$2a$10$3hJrl2V1bPn4B0XT3APP9ek4/ccihXjMc9Lt.g..r2QH6ViQ10ApG', '王八', 0, '13020305069', '', NULL, 1, NULL);
+INSERT INTO `sys_user` VALUES (10, 'zyz08', '$2a$10$3hJrl2V1bPn4B0XT3APP9ek4/ccihXjMc9Lt.g..r2QH6ViQ10ApG', '王八', 0, '13020305069', '', '/uploads/avatar/2026/03/10_1773066395553.png', 1, NULL);
 
 -- ----------------------------
 -- Table structure for volunteer_record
@@ -427,10 +436,12 @@ CREATE TABLE `volunteer_record`  (
   PRIMARY KEY (`record_id`) USING BTREE,
   UNIQUE INDEX `reg_id`(`reg_id` ASC) USING BTREE,
   CONSTRAINT `fk_rec_reg` FOREIGN KEY (`reg_id`) REFERENCES `registration` (`reg_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '志愿时长记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '志愿时长记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of volunteer_record
 -- ----------------------------
+INSERT INTO `volunteer_record` VALUES (1, 1, 3.50, 35, '2026-03-09 22:23:59', 1);
+INSERT INTO `volunteer_record` VALUES (2, 2, 2.00, 20, '2026-03-14 14:21:22', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

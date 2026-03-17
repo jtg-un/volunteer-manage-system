@@ -62,6 +62,9 @@ vsm/
 │   │       │   ├── Activity.java
 │   │       │   ├── ActivityPosition.java
 │   │       │   ├── Registration.java
+│   │       │   ├── CheckinLog.java
+│   │       │   ├── VolunteerRecord.java
+│   │       │   ├── Evaluation.java
 │   │       │   └── SysRegion.java
 │   │       └── mapper/
 │   │           ├── OrganizationMapper.java
@@ -70,6 +73,9 @@ vsm/
 │   │           ├── ActivityMapper.java
 │   │           ├── ActivityPositionMapper.java
 │   │           ├── RegistrationMapper.java
+│   │           ├── CheckinLogMapper.java
+│   │           ├── VolunteerRecordMapper.java
+│   │           ├── EvaluationMapper.java
 │   │           └── SysRegionMapper.java
 │   ├── vms-service-user/                 # 用户服务（端口 8081）
 │   │   └── src/main/
@@ -92,15 +98,28 @@ vsm/
 │   │       │   ├── controller/
 │   │       │   │   ├── PublicActivityController.java
 │   │       │   │   ├── OrgActivityController.java
-│   │       │   │   └── AdminActivityController.java
+│   │       │   │   ├── AdminActivityController.java
+│   │       │   │   ├── VolunteerController.java
+│   │       │   │   ├── OrgRegistrationController.java
+│   │       │   │   └── EvaluationController.java
 │   │       │   └── service/              # 业务逻辑层（按职责拆分）
 │   │       │       ├── PublicActivityService.java
 │   │       │       ├── OrgActivityService.java
 │   │       │       ├── AdminActivityService.java
+│   │       │       ├── VolunteerRegistrationService.java
+│   │       │       ├── OrgRegistrationService.java
+│   │       │       ├── CheckinService.java
+│   │       │       ├── VolunteerRecordService.java
+│   │       │       ├── EvaluationService.java
 │   │       │       ├── impl/
 │   │       │       │   ├── PublicActivityServiceImpl.java
 │   │       │       │   ├── OrgActivityServiceImpl.java
-│   │       │       │   └── AdminActivityServiceImpl.java
+│   │       │       │   ├── AdminActivityServiceImpl.java
+│   │       │       │   ├── VolunteerRegistrationServiceImpl.java
+│   │       │       │   ├── OrgRegistrationServiceImpl.java
+│   │       │       │   ├── CheckinServiceImpl.java
+│   │       │       │   ├── VolunteerRecordServiceImpl.java
+│   │       │       │   └── EvaluationServiceImpl.java
 │   │       │       └── support/
 │   │       │           └── ActivitySupport.java  # 公共辅助方法
 │   │       └── resources/application.yml
@@ -130,7 +149,11 @@ vsm/
 │       │   ├── auth.js
 │       │   ├── org.js
 │       │   ├── activity.js
-│       │   └── system.js
+│       │   ├── system.js
+│       │   ├── user.js
+│       │   ├── volunteer.js
+│       │   ├── orgReg.js
+│       │   └── evaluation.js
 │       ├── router/
 │       │   └── index.js                  # 路由配置
 │       ├── stores/
@@ -151,11 +174,19 @@ vsm/
 │           │   └── home.vue              # 首页
 │           ├── admin/
 │           │   ├── orgAudit.vue          # 管理员-组织审核
-│           │   └── activityAudit.vue     # 管理员-活动审核
+│           │   ├── activityAudit.vue     # 管理员-活动审核
+│           │   └── userManage.vue        # 管理员-用户管理
 │           ├── org/
 │           │   ├── profile.vue           # 组织-个人中心
 │           │   ├── publishActivity.vue   # 组织-发布活动
-│           │   └── myActivity.vue        # 组织-我的活动
+│           │   ├── myActivity.vue        # 组织-我的活动
+│           │   └── registrations.vue     # 组织-报名管理
+│           ├── volunteer/
+│           │   ├── myRegistrations.vue   # 志愿者-我的报名
+│           │   ├── records.vue           # 志愿者-时长记录
+│           │   └── myEvaluations.vue     # 志愿者-我的评价
+│           ├── user/
+│           │   └── profile.vue           # 用户-个人中心
 │           └── activity/
 │               └── list.vue              # 活动列表
 │
@@ -799,11 +830,96 @@ file:
 
 ---
 
+## 垂直切片七：评价与积分 [已完成]
+
+### 后端实现
+
+#### 实体与 Mapper
+- [x] Evaluation 实体类：评价记录
+- [x] EvaluationMapper：评价 Mapper
+
+#### DTO/VO 创建
+- [x] EvaluationDTO：评价提交 DTO
+- [x] EvaluationVO：评价记录 VO
+
+#### 服务层实现
+- [x] EvaluationService：评价服务接口
+  - 组织评价志愿者（验证活动归属、报名状态、重复评价）
+  - 获取报名的评价信息
+  - 志愿者获取自己的评价列表
+  - 检查报名是否已评价
+- [x] EvaluationServiceImpl：评价服务实现类
+
+#### Controller 层
+- [x] EvaluationController：评价控制器
+  - POST `/api/org/evaluation` - 组织评价志愿者
+  - GET `/api/org/evaluation/{regId}` - 获取报名的评价信息
+  - GET `/api/org/evaluation/check/{regId}` - 检查报名是否已评价
+  - GET `/api/volunteer/my/evaluations` - 志愿者获取自己的评价列表
+
+### 后端 API 接口
+
+#### 组织端 (8083)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| POST | /api/org/evaluation | 组织评价志愿者 |
+| GET | /api/org/evaluation/{regId} | 获取报名的评价信息 |
+| GET | /api/org/evaluation/check/{regId} | 检查报名是否已评价 |
+
+#### 志愿者端 (8083)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/volunteer/my/evaluations | 获取我的评价列表 |
+
+### 前端实现
+
+#### API 封装
+- [x] `src/api/evaluation.js`: 评价相关 API
+  - evaluateVolunteer: 评价志愿者
+  - getEvaluationByRegId: 获取评价信息
+  - checkEvaluated: 检查是否已评价
+  - getMyEvaluations: 获取我的评价列表
+
+#### 页面实现
+- [x] `src/views/org/registrations.vue`: 更新报名管理页面
+  - 添加"评价"按钮（已发放时长的报名可评价）
+  - 评价弹窗（培训评分、协作评分、执行力评分、评价内容）
+  - 自动计算综合评分
+  - 查看已提交的评价
+- [x] `src/views/volunteer/myEvaluations.vue`: 我的评价页面
+  - 评价列表展示
+  - 显示活动名称、评价组织、综合评分、各项评分、评价内容
+
+#### 路由配置
+- [x] 添加 `/volunteer/my-evaluations` 路由（志愿者）
+
+#### 侧边栏菜单
+- [x] 志愿者菜单：添加"我的评价"菜单项
+
+#### Vite 代理配置
+- [x] 添加 `/api/org/evaluation` 代理到 8083
+
+### 业务规则
+1. **评价条件**:
+   - 报名必须已通过审核
+   - 报名必须已发放时长
+   - 同一报名只能评价一次
+
+2. **评分规则**:
+   - 培训评分：1-5分
+   - 协作评分：1-5分
+   - 执行力评分：1-5分
+   - 综合评分：三项评分的平均值
+
+3. **权限控制**:
+   - 组织只能评价自己活动的志愿者
+   - 志愿者只能查看自己的评价记录
+
+---
+
 ## 待开发功能
 
-### 垂直切片七：评价与积分
-- [ ] 组织评价志愿者
-- [ ] 积分计算与展示优化
+暂无待开发功能。
 
 ---
 
@@ -853,4 +969,4 @@ npm run dev
 
 ---
 
-*最后更新: 2026-03-09*
+*最后更新: 2026-03-17*

@@ -22,6 +22,11 @@ export default defineConfig({
         target: 'http://localhost:8083',
         changeOrigin: true
       },
+      // 组织端评价 (8083)
+      '/api/org/evaluation': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
       '/api/org': {
         target: 'http://localhost:8081',
         changeOrigin: true

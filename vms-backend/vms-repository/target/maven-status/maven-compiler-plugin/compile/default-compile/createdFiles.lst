@@ -3,6 +3,8 @@ com\vms\repository\mapper\CheckinLogMapper.class
 com\vms\repository\mapper\ActivityPositionMapper.class
 com\vms\repository\config\MyMetaObjectHandler.class
 com\vms\repository\entity\Registration.class
+com\vms\repository\mapper\EvaluationMapper.class
+com\vms\repository\entity\Evaluation.class
 com\vms\repository\entity\Organization.class
 com\vms\repository\mapper\SysUserMapper.class
 com\vms\repository\mapper\RegistrationMapper.class

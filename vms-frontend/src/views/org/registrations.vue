@@ -60,7 +60,7 @@
               {{ formatDateTime(row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="220" fixed="right">
+          <el-table-column label="操作" width="280" fixed="right">
             <template #default="{ row }">
               <template v-if="row.regStatus === 0">
                 <el-button type="primary" size="small" @click="handleAudit(row, 1)">通过</el-button>
@@ -68,6 +68,10 @@
               </template>
               <template v-if="row.regStatus === 1 && row.checkedOut && !row.hoursIssued">
                 <el-button type="success" size="small" @click="showHoursDialog(row)">发放时长</el-button>
+              </template>
+              <template v-if="row.regStatus === 1 && row.hoursIssued">
+                <el-button v-if="row.evaluated" type="info" size="small" @click="showEvaluationDialog(row, true)">查看评价</el-button>
+                <el-button v-else type="warning" size="small" @click="showEvaluationDialog(row, false)">评价</el-button>
               </template>
             </template>
           </el-table-column>
@@ -107,6 +111,34 @@
         <el-button type="primary" @click="handleConfirmHours">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 评价弹窗 -->
+    <el-dialog v-model="evalDialogVisible" :title="isViewMode ? '查看评价' : '评价志愿者'" width="500px">
+      <el-form :model="evalForm" label-width="100px" :disabled="isViewMode">
+        <el-form-item label="志愿者">
+          <span>{{ currentRow?.realName }}</span>
+        </el-form-item>
+        <el-form-item label="培训评分">
+          <el-rate v-model="evalForm.scoreTraining" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" show-score :score-template="evalForm.scoreTraining + '分'" />
+        </el-form-item>
+        <el-form-item label="协作评分">
+          <el-rate v-model="evalForm.scoreCooperation" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" show-score :score-template="evalForm.scoreCooperation + '分'" />
+        </el-form-item>
+        <el-form-item label="执行力评分">
+          <el-rate v-model="evalForm.scoreExecution" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" show-score :score-template="evalForm.scoreExecution + '分'" />
+        </el-form-item>
+        <el-form-item label="综合评分">
+          <el-tag type="success" size="large">{{ avgScore }} 分</el-tag>
+        </el-form-item>
+        <el-form-item label="评价内容">
+          <el-input v-model="evalForm.comment" type="textarea" :rows="4" placeholder="请输入评价内容（选填）" maxlength="500" show-word-limit />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="evalDialogVisible = false">{{ isViewMode ? '关闭' : '取消' }}</el-button>
+        <el-button v-if="!isViewMode" type="primary" @click="handleEvaluate">提交评价</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -115,6 +147,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRegistrations, auditRegistration, confirmHours } from '@/api/orgReg'
 import { getMyActivities } from '@/api/activity'
+import { evaluateVolunteer, getEvaluationByRegId, checkEvaluated } from '@/api/evaluation'
 
 const loading = ref(false)
 const activities = ref([])
@@ -136,6 +169,22 @@ const hoursForm = reactive({
   regId: null,
   hours: 1,
   points: 10
+})
+
+// 评价弹窗
+const evalDialogVisible = ref(false)
+const isViewMode = ref(false)
+const evalForm = reactive({
+  regId: null,
+  scoreTraining: 5,
+  scoreCooperation: 5,
+  scoreExecution: 5,
+  comment: ''
+})
+
+// 计算综合评分
+const avgScore = computed(() => {
+  return ((evalForm.scoreTraining + evalForm.scoreCooperation + evalForm.scoreExecution) / 3).toFixed(2)
 })
 
 // 自动计算积分
@@ -173,6 +222,17 @@ async function loadData() {
     })
     registrations.value = res.records || []
     pagination.total = res.total || 0
+
+    // 检查已发放时长的报名是否已评价
+    for (const reg of registrations.value) {
+      if (reg.hoursIssued) {
+        try {
+          reg.evaluated = await checkEvaluated(reg.regId)
+        } catch (error) {
+          reg.evaluated = false
+        }
+      }
+    }
   } catch (error) {
     console.error('加载报名列表失败:', error)
   } finally {
@@ -222,6 +282,55 @@ async function handleConfirmHours() {
     loadData()
   } catch (error) {
     console.error('发放时长失败:', error)
+  }
+}
+
+// 显示评价弹窗
+async function showEvaluationDialog(row, viewMode) {
+  currentRow.value = row
+  isViewMode.value = viewMode
+
+  if (viewMode) {
+    // 查看模式，加载评价数据
+    try {
+      const res = await getEvaluationByRegId(row.regId)
+      if (res) {
+        evalForm.regId = row.regId
+        evalForm.scoreTraining = res.scoreTraining
+        evalForm.scoreCooperation = res.scoreCooperation
+        evalForm.scoreExecution = res.scoreExecution
+        evalForm.comment = res.comment || ''
+      }
+    } catch (error) {
+      console.error('加载评价失败:', error)
+    }
+  } else {
+    // 新建评价，重置表单
+    evalForm.regId = row.regId
+    evalForm.scoreTraining = 5
+    evalForm.scoreCooperation = 5
+    evalForm.scoreExecution = 5
+    evalForm.comment = ''
+  }
+
+  evalDialogVisible.value = true
+}
+
+// 提交评价
+async function handleEvaluate() {
+  try {
+    await evaluateVolunteer({
+      regId: evalForm.regId,
+      scoreTraining: evalForm.scoreTraining,
+      scoreCooperation: evalForm.scoreCooperation,
+      scoreExecution: evalForm.scoreExecution,
+      comment: evalForm.comment
+    })
+    ElMessage.success('评价成功')
+    evalDialogVisible.value = false
+    loadData()
+  } catch (error) {
+    console.error('评价失败:', error)
   }
 }
 

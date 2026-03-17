@@ -17,6 +17,7 @@ com\vms\common\dto\ActivityAuditDTO.class
 com\vms\common\utils\JwtUtils.class
 com\vms\common\dto\UserUpdateDTO.class
 com\vms\common\vo\OrgListVO.class
+com\vms\common\dto\EvaluationDTO.class
 com\vms\common\dto\LoginDTO.class
 com\vms\common\vo\VolunteerRecordVO.class
 com\vms\common\dto\OrgUpdateDTO.class
@@ -27,6 +28,7 @@ com\vms\common\vo\UserInfoVO.class
 com\vms\common\dto\PasswordUpdateDTO.class
 com\vms\common\dto\RegistrationAuditDTO.class
 com\vms\common\vo\MyRegistrationVO.class
+com\vms\common\vo\EvaluationVO.class
 com\vms\common\vo\RegistrationListVO.class
 com\vms\common\config\SecurityConfig.class
 com\vms\common\vo\DictVO.class

@@ -3,6 +3,7 @@ D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repos
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\Activity.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\ActivityPosition.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\CheckinLog.java
+D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\Evaluation.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\Organization.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\Registration.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\entity\SysDict.java
@@ -12,6 +13,7 @@ D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repos
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\ActivityMapper.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\ActivityPositionMapper.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\CheckinLogMapper.java
+D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\EvaluationMapper.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\OrganizationMapper.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\RegistrationMapper.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-repository\src\main\java\com\vms\repository\mapper\SysDictMapper.java

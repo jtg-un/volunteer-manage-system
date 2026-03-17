@@ -5,6 +5,7 @@ D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-commo
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\ActivityQueryDTO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\ActivityStatusDTO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\ActivityUpdateDTO.java
+D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\EvaluationDTO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\HoursConfirmDTO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\LoginDTO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\dto\OrgAuditDTO.java
@@ -24,6 +25,7 @@ D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-commo
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\ActivityDetailVO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\ActivityListVO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\DictVO.java
+D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\EvaluationVO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\LoginVO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\MyActivityListVO.java
 D:\Administrator\Desktop\bishe\vsm\volunteer-manage-system\vms-backend\vms-common\src\main\java\com\vms\common\vo\MyRegistrationVO.java
