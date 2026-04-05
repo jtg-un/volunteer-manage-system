@@ -12,7 +12,13 @@
 
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="projectCode" label="项目编号" width="150" />
-        <el-table-column prop="title" label="活动标题" min-width="200" />
+        <el-table-column label="活动标题" min-width="200">
+          <template #default="{ row }">
+            <el-link type="primary" @click="handleDetail(row)">
+              {{ row.title }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="categoryName" label="服务类别" width="100" />
         <el-table-column prop="regionName" label="所属地区" width="120" />
         <el-table-column label="活动时间" width="200">
@@ -91,32 +97,11 @@
     </el-card>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailVisible" title="活动详情" width="700px">
-      <el-descriptions :column="2" border v-if="currentActivity">
-        <el-descriptions-item label="项目编号">{{ currentActivity.projectCode }}</el-descriptions-item>
-        <el-descriptions-item label="活动标题">{{ currentActivity.title }}</el-descriptions-item>
-        <el-descriptions-item label="服务类别">{{ currentActivity.categoryName }}</el-descriptions-item>
-        <el-descriptions-item label="所属地区">{{ currentActivity.regionName }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="getStatusType(currentActivity.status)">{{ currentActivity.statusName }}</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="报名情况">
-          {{ currentActivity.totalCurrentCount }} / {{ currentActivity.totalPlanCount }}
-        </el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ formatDateTime(currentActivity.startTime) }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ formatDateTime(currentActivity.endTime) }}</el-descriptions-item>
-        <el-descriptions-item label="项目描述" :span="2">
-          {{ currentActivity.description || '无' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="拒绝原因" :span="2" v-if="currentActivity.status === 4">
-          <el-text type="danger">{{ currentActivity.rejectReason || '无' }}</el-text>
-        </el-descriptions-item>
-      </el-descriptions>
-
-      <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
+    <OrgActivityDetailDialog
+      v-model="detailVisible"
+      :activity-id="currentActivityId"
+      @updated="fetchData"
+    />
 
     <!-- 编辑弹窗 -->
     <el-dialog v-model="editVisible" title="编辑活动" width="700px">
@@ -242,6 +227,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { getMyActivities, updateActivityStatus, updateActivity, cancelActivity } from '@/api/activity'
 import { getDict, getRegionList } from '@/api/system'
+import OrgActivityDetailDialog from '@/components/org/OrgActivityDetailDialog.vue'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -252,7 +238,7 @@ const pagination = ref({
 })
 
 const detailVisible = ref(false)
-const currentActivity = ref(null)
+const currentActivityId = ref(null)
 
 // 编辑相关
 const editVisible = ref(false)
@@ -323,7 +309,7 @@ const fetchData = async () => {
 }
 
 const handleDetail = (row) => {
-  currentActivity.value = row
+  currentActivityId.value = row.activityId
   detailVisible.value = true
 }
 

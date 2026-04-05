@@ -26,17 +26,25 @@ public class OrgRegistrationController {
     private final UserContext userContext;
 
     /**
-     * 获取活动的报名列表
+     * 获取报名列表（支持按活动筛选）
      */
-    @GetMapping("/list/{activityId}")
+    @GetMapping("/list")
     public Result<Page<RegistrationListVO>> listRegistrations(
             @RequestHeader("Authorization") String authorization,
-            @PathVariable("activityId") Long activityId,
+            @RequestParam(value = "activityId", required = false) Long activityId,
             @RequestParam(value = "status", required = false) Integer status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        Long userId = userContext.requireOrgAndGetUserId(authorization);
-        Long orgId = getOrgIdByUserId(userId);
+        Long userId = userContext.requireOrgOrAdminAndGetUserId(authorization);
+        Integer role = userContext.getRole(authorization);
+
+        Long orgId = null;
+        if (role == 1) {
+            // 组织角色，只能查看自己活动的报名
+            orgId = getOrgIdByUserId(userId);
+        }
+        // 管理员角色 orgId 为 null，可以查看所有报名
+
         Page<RegistrationListVO> result = registrationService.listRegistrations(orgId, activityId, status, page, size);
         return Result.success(result);
     }
@@ -48,8 +56,16 @@ public class OrgRegistrationController {
     public Result<Void> audit(
             @RequestHeader("Authorization") String authorization,
             @Valid @RequestBody RegistrationAuditDTO dto) {
-        Long userId = userContext.requireOrgAndGetUserId(authorization);
-        Long orgId = getOrgIdByUserId(userId);
+        Long userId = userContext.requireOrgOrAdminAndGetUserId(authorization);
+        Integer role = userContext.getRole(authorization);
+
+        Long orgId = null;
+        if (role == 1) {
+            // 组织角色，只能审核自己活动的报名
+            orgId = getOrgIdByUserId(userId);
+        }
+        // 管理员角色 orgId 为 null，可以审核所有报名
+
         registrationService.audit(orgId, dto);
         return Result.successMsg("审核完成");
     }
@@ -61,8 +77,16 @@ public class OrgRegistrationController {
     public Result<Void> confirmHours(
             @RequestHeader("Authorization") String authorization,
             @Valid @RequestBody HoursConfirmDTO dto) {
-        Long userId = userContext.requireOrgAndGetUserId(authorization);
-        Long orgId = getOrgIdByUserId(userId);
+        Long userId = userContext.requireOrgOrAdminAndGetUserId(authorization);
+        Integer role = userContext.getRole(authorization);
+
+        Long orgId = null;
+        if (role == 1) {
+            // 组织角色，只能操作自己活动的报名
+            orgId = getOrgIdByUserId(userId);
+        }
+        // 管理员角色 orgId 为 null，可以操作所有报名
+
         registrationService.confirmHours(orgId, dto);
         return Result.successMsg("时长发放成功");
     }

@@ -19,8 +19,20 @@
 
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="projectCode" label="项目编号" width="150" />
-        <el-table-column prop="title" label="活动标题" min-width="200" />
-        <el-table-column prop="orgName" label="发起组织" width="150" />
+        <el-table-column label="活动标题" min-width="200">
+          <template #default="{ row }">
+            <el-link type="primary" @click="handleDetail(row)">
+              {{ row.title }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column label="发起组织" width="150">
+          <template #default="{ row }">
+            <el-link type="primary" @click="showOrgDetail(row.orgId)">
+              {{ row.orgName }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="categoryName" label="服务类别" width="100" />
         <el-table-column prop="regionName" label="所属地区" width="120" />
         <el-table-column label="活动时间" width="200">
@@ -68,14 +80,17 @@
     </el-card>
 
     <!-- 详情弹窗 -->
-    <ActivityDetailDialog v-model="detailVisible" :data="currentActivity" show-create-time>
-      <template #actions="{ data }">
-        <template v-if="data.status === 3">
-          <el-button type="success" @click="handleAudit(data, 1)">通过</el-button>
-          <el-button type="danger" @click="handleAudit(data, 2)">拒绝</el-button>
-        </template>
-      </template>
-    </ActivityDetailDialog>
+    <OrgActivityDetailDialog
+      v-model="detailVisible"
+      :activity-id="currentActivityId"
+      @updated="fetchData"
+    />
+
+    <!-- 组织详情弹窗 -->
+    <OrgDetailDialog
+      v-model="orgDetailVisible"
+      :org-id="selectedOrgId"
+    />
 
     <!-- 拒绝原因弹窗 -->
     <el-dialog v-model="rejectVisible" title="拒绝原因" width="400px">
@@ -96,9 +111,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getPendingActivities, getActivityDetail, auditActivity } from '@/api/activity'
+import { getPendingActivities, auditActivity } from '@/api/activity'
 import { getStatusName, getStatusType, formatDateTime, formatTimeRange } from '@/utils/activity'
-import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
+import OrgActivityDetailDialog from '@/components/org/OrgActivityDetailDialog.vue'
+import OrgDetailDialog from '@/components/org/OrgDetailDialog.vue'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -110,7 +126,11 @@ const pagination = ref({
 
 const filterStatus = ref(null)
 const detailVisible = ref(false)
-const currentActivity = ref(null)
+const currentActivityId = ref(null)
+
+// 组织详情弹窗
+const orgDetailVisible = ref(false)
+const selectedOrgId = ref(null)
 
 const rejectVisible = ref(false)
 const rejectReason = ref('')
@@ -139,14 +159,14 @@ const handleSearch = () => {
   fetchData()
 }
 
-const handleDetail = async (row) => {
-  try {
-    const res = await getActivityDetail(row.activityId)
-    currentActivity.value = res
-    detailVisible.value = true
-  } catch {
-    // ignore
-  }
+const handleDetail = (row) => {
+  currentActivityId.value = row.activityId
+  detailVisible.value = true
+}
+
+const showOrgDetail = (orgId) => {
+  selectedOrgId.value = orgId
+  orgDetailVisible.value = true
 }
 
 const handleAudit = async (row, result) => {

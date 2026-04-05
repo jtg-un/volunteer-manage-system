@@ -13,6 +13,9 @@ public class VolunteerRecordVO {
 
     private Long recordId;
 
+    /** 活动ID */
+    private Long activityId;
+
     /** 活动标题 */
     private String activityTitle;
 

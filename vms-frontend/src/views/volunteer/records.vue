@@ -6,7 +6,13 @@
       </template>
 
       <el-table :data="records" v-loading="loading">
-        <el-table-column prop="activityTitle" label="活动名称" min-width="180" />
+        <el-table-column label="活动名称" min-width="180">
+          <template #default="{ row }">
+            <el-link type="primary" @click="showActivityDetail(row.activityId)">
+              {{ row.activityTitle }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column label="活动时间" width="180">
           <template #default="{ row }">
             {{ formatDateTime(row.activityStartTime) }} ~ {{ formatDateTime(row.activityEndTime) }}
@@ -39,15 +45,27 @@
         @current-change="loadData"
       />
     </el-card>
+
+    <!-- 活动详情弹窗 -->
+    <ActivityDetailDialog
+      v-model="activityDetailVisible"
+      :data="activityDetailData"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { getMyRecords } from '@/api/volunteer'
+import { getActivityDetail } from '@/api/activity'
+import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
 
 const loading = ref(false)
 const records = ref([])
+
+// 活动详情弹窗
+const activityDetailVisible = ref(false)
+const activityDetailData = ref({})
 
 const pagination = reactive({
   page: 1,
@@ -78,6 +96,17 @@ async function loadData() {
 function formatDateTime(dateTime) {
   if (!dateTime) return '-'
   return dateTime.replace('T', ' ').slice(0, 16)
+}
+
+// 显示活动详情
+async function showActivityDetail(activityId) {
+  try {
+    const res = await getActivityDetail(activityId)
+    activityDetailData.value = res
+    activityDetailVisible.value = true
+  } catch (error) {
+    console.error('加载活动详情失败:', error)
+  }
 }
 </script>
 

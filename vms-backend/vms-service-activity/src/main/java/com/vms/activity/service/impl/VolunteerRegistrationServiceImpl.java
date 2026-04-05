@@ -38,13 +38,13 @@ public class VolunteerRegistrationServiceImpl implements VolunteerRegistrationSe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long register(Long userId, RegistrationDTO dto) {
-        // 检查活动是否存在且状态为运行中
+        // 检查活动是否存在且状态为待启动
         Activity activity = activityMapper.selectById(dto.getActivityId());
         if (activity == null) {
             throw new BusinessException(404, "活动不存在");
         }
-        if (activity.getStatus() != 1) {
-            throw new BusinessException(400, "活动未开始或已结束，无法报名");
+        if (activity.getStatus() != 0) {
+            throw new BusinessException(400, "活动已启动或已结束，无法报名");
         }
 
         // 检查岗位是否存在且有余量
@@ -56,15 +56,37 @@ public class VolunteerRegistrationServiceImpl implements VolunteerRegistrationSe
             throw new BusinessException(400, "该岗位已报满");
         }
 
-        // 检查是否已报名
+        // 检查是否已报名（排除已取消的报名）
         LambdaQueryWrapper<Registration> regWrapper = new LambdaQueryWrapper<>();
         regWrapper.eq(Registration::getUserId, userId)
-                  .eq(Registration::getActivityId, dto.getActivityId());
+                  .eq(Registration::getActivityId, dto.getActivityId())
+                  .ne(Registration::getRegStatus, 3); // 排除已取消的报名
         if (registrationMapper.selectCount(regWrapper) > 0) {
             throw new BusinessException(400, "您已报名该活动，请勿重复报名");
         }
 
-        // 创建报名记录
+        // 检查是否有已取消的报名记录，如果有则恢复
+        LambdaQueryWrapper<Registration> canceledWrapper = new LambdaQueryWrapper<>();
+        canceledWrapper.eq(Registration::getUserId, userId)
+                       .eq(Registration::getActivityId, dto.getActivityId())
+                       .eq(Registration::getRegStatus, 3);
+        Registration canceledReg = registrationMapper.selectOne(canceledWrapper);
+
+        if (canceledReg != null) {
+            // 恢复已取消的报名记录
+            canceledReg.setPosId(dto.getPosId()); // 可能换了岗位
+            canceledReg.setRegStatus(0); // 待审核
+            registrationMapper.updateById(canceledReg);
+
+            // 更新岗位报名人数
+            position.setCurrentCount(position.getCurrentCount() + 1);
+            positionMapper.updateById(position);
+
+            log.info("恢复报名成功: userId={}, activityId={}, posId={}", userId, dto.getActivityId(), dto.getPosId());
+            return canceledReg.getRegId();
+        }
+
+        // 创建新的报名记录
         Registration registration = new Registration();
         registration.setUserId(userId);
         registration.setActivityId(dto.getActivityId());
@@ -107,8 +129,9 @@ public class VolunteerRegistrationServiceImpl implements VolunteerRegistrationSe
         registration.setRegStatus(3); // 取消
         registrationMapper.updateById(registration);
 
-        // 如果之前是已通过状态，需要减少岗位人数
-        if (oldStatus == 1) {
+        // 待审核或已通过状态需要减少岗位人数
+        // 已拒绝状态不需要减少，因为组织拒绝时已经减少了
+        if (oldStatus == 0 || oldStatus == 1) {
             ActivityPosition position = positionMapper.selectById(registration.getPosId());
             if (position != null && position.getCurrentCount() > 0) {
                 position.setCurrentCount(position.getCurrentCount() - 1);

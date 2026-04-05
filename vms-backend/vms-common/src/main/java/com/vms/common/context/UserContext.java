@@ -56,10 +56,29 @@ public class UserContext {
     }
 
     /**
+     * 验证是否为组织或管理员角色
+     * @throws BusinessException 如果不是组织或管理员
+     */
+    public void requireOrgOrAdmin(String authorization) {
+        Integer role = getRole(authorization);
+        if (role == null || (role != 1 && role != 2)) {
+            throw new BusinessException(403, "只有组织或管理员可以操作");
+        }
+    }
+
+    /**
      * 验证是否为组织角色并返回用户ID
      */
     public Long requireOrgAndGetUserId(String authorization) {
         requireOrg(authorization);
+        return getUserId(authorization);
+    }
+
+    /**
+     * 验证是否为组织或管理员角色并返回用户ID
+     */
+    public Long requireOrgOrAdminAndGetUserId(String authorization) {
+        requireOrgOrAdmin(authorization);
         return getUserId(authorization);
     }
 

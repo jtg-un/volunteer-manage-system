@@ -28,14 +28,50 @@
         </el-form-item>
 
         <el-form-item label="项目属地" prop="regionCode">
-          <el-cascader
-            v-model="form.regionCodes"
-            :options="regionOptions"
-            :props="regionProps"
-            placeholder="请选择项目属地"
-            style="width: 100%"
-            @change="handleRegionChange"
-          />
+          <el-select
+            v-model="selectedProvince"
+            placeholder="选择省"
+            clearable
+            style="width: 140px"
+            @change="handleProvinceChange"
+          >
+            <el-option
+              v-for="item in provinceList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
+          <el-select
+            v-model="selectedCity"
+            placeholder="选择市"
+            clearable
+            style="width: 140px; margin-left: 8px"
+            :disabled="!selectedProvince"
+            @change="handleCityChange"
+          >
+            <el-option
+              v-for="item in cityList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
+          <el-select
+            v-model="selectedDistrict"
+            placeholder="选择区"
+            clearable
+            style="width: 140px; margin-left: 8px"
+            :disabled="!selectedCity"
+            @change="handleDistrictChange"
+          >
+            <el-option
+              v-for="item in districtList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="服务对象" prop="targetAudience">
@@ -132,18 +168,31 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { publishActivity } from '@/api/activity'
-import { getDict, getRegionList } from '@/api/system'
+import { getDict } from '@/api/system'
+import { useRegion } from '@/composables/useRegion'
 
 const formRef = ref(null)
 const submitting = ref(false)
 const categoryList = ref([])
-const regionOptions = ref([])
+
+const {
+  provinceList,
+  cityList,
+  districtList,
+  selectedProvince,
+  selectedCity,
+  selectedDistrict,
+  regionCode,
+  loadProvinces,
+  handleProvinceChange,
+  handleCityChange,
+  handleDistrictChange,
+  resetRegion
+} = useRegion()
 
 const form = reactive({
   title: '',
   categoryId: '',
-  regionCodes: [],
-  regionCode: '',
   targetAudience: '',
   startTime: '',
   endTime: '',
@@ -156,36 +205,15 @@ const form = reactive({
 const rules = {
   title: [{ required: true, message: '请输入项目标题', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择服务类别', trigger: 'change' }],
-  regionCode: [{ required: true, message: '请选择项目属地', trigger: 'change' }],
   startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }]
 }
 
-const regionProps = {
-  value: 'regionCode',
-  label: 'regionName',
-  children: 'children',
-  lazy: true,
-  lazyLoad: async (node, resolve) => {
-    const { level, value } = node
-    const parentCode = level === 0 ? '' : value
-    try {
-      const res = await getRegionList(parentCode)
-      const nodes = res.map(item => ({
-        regionCode: item.regionCode,
-        regionName: item.regionName,
-        leaf: item.level >= 3 || !item.hasChildren
-      }))
-      resolve(nodes)
-    } catch {
-      resolve([])
-    }
-  }
-}
-
 onMounted(async () => {
-  await loadCategories()
-  await loadProvinces()
+  await Promise.all([
+    loadCategories(),
+    loadProvinces()
+  ])
 })
 
 async function loadCategories() {
@@ -195,24 +223,6 @@ async function loadCategories() {
   } catch {
     ElMessage.error('加载服务类别失败')
   }
-}
-
-async function loadProvinces() {
-  try {
-    const res = await getRegionList('')
-    regionOptions.value = res.map(item => ({
-      regionCode: item.regionCode,
-      regionName: item.regionName,
-      children: item.hasChildren ? [] : undefined,
-      leaf: !item.hasChildren
-    }))
-  } catch {
-    ElMessage.error('加载行政区划失败')
-  }
-}
-
-function handleRegionChange(value) {
-  form.regionCode = value[value.length - 1] || ''
 }
 
 function addPosition() {
@@ -229,6 +239,11 @@ async function handleSubmit() {
   try {
     await formRef.value.validate()
 
+    if (!regionCode.value) {
+      ElMessage.warning('请选择项目属地')
+      return
+    }
+
     if (form.positions.some(p => !p.posName || !p.planCount)) {
       ElMessage.warning('请完善所有岗位信息')
       return
@@ -239,7 +254,7 @@ async function handleSubmit() {
     const data = {
       title: form.title,
       categoryId: form.categoryId,
-      regionCode: form.regionCode,
+      regionCode: regionCode.value,
       targetAudience: form.targetAudience,
       startTime: form.startTime,
       endTime: form.endTime,
@@ -262,8 +277,7 @@ async function handleSubmit() {
 function handleReset() {
   formRef.value?.resetFields()
   form.positions = [{ posName: '', planCount: 1 }]
-  form.regionCodes = []
-  form.regionCode = ''
+  resetRegion()
 }
 </script>
 

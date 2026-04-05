@@ -36,19 +36,42 @@ public class OrgRegistrationServiceImpl implements OrgRegistrationService {
 
     @Override
     public Page<RegistrationListVO> listRegistrations(Long orgId, Long activityId, Integer status, int page, int size) {
-        // 验证活动归属
-        Activity activity = activityMapper.selectById(activityId);
-        if (activity == null) {
-            throw new BusinessException(404, "活动不存在");
-        }
-        if (!activity.getOrgId().equals(orgId)) {
-            throw new BusinessException(403, "只能查看自己活动的报名");
+        // 如果指定了活动，验证活动归属（组织角色需要验证）
+        if (activityId != null && orgId != null) {
+            Activity activity = activityMapper.selectById(activityId);
+            if (activity == null) {
+                throw new BusinessException(404, "活动不存在");
+            }
+            if (!activity.getOrgId().equals(orgId)) {
+                throw new BusinessException(403, "只能查看自己活动的报名");
+            }
         }
 
         // 查询报名列表
         Page<Registration> regPage = new Page<>(page, size);
         LambdaQueryWrapper<Registration> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Registration::getActivityId, activityId);
+
+        // 如果指定了活动，按活动筛选
+        if (activityId != null) {
+            wrapper.eq(Registration::getActivityId, activityId);
+        } else if (orgId != null) {
+            // 组织角色：查询该组织所有活动的报名
+            LambdaQueryWrapper<Activity> actWrapper = new LambdaQueryWrapper<>();
+            actWrapper.eq(Activity::getOrgId, orgId);
+            actWrapper.select(Activity::getActivityId);
+            List<Long> activityIds = activityMapper.selectList(actWrapper)
+                    .stream()
+                    .map(Activity::getActivityId)
+                    .collect(Collectors.toList());
+
+            if (activityIds.isEmpty()) {
+                // 该组织没有活动，返回空结果
+                return new Page<>(page, size, 0);
+            }
+            wrapper.in(Registration::getActivityId, activityIds);
+        }
+        // 管理员角色（orgId 为 null）：查询所有报名
+
         if (status != null) {
             wrapper.eq(Registration::getRegStatus, status);
         }
@@ -66,9 +89,12 @@ public class OrgRegistrationServiceImpl implements OrgRegistrationService {
             throw new BusinessException(404, "报名记录不存在");
         }
 
-        // 验证活动归属
+        // 验证活动归属（组织角色需要验证）
         Activity activity = activityMapper.selectById(registration.getActivityId());
-        if (activity == null || !activity.getOrgId().equals(orgId)) {
+        if (activity == null) {
+            throw new BusinessException(404, "活动不存在");
+        }
+        if (orgId != null && !activity.getOrgId().equals(orgId)) {
             throw new BusinessException(403, "只能审核自己活动的报名");
         }
 
@@ -106,9 +132,12 @@ public class OrgRegistrationServiceImpl implements OrgRegistrationService {
             throw new BusinessException(404, "报名记录不存在");
         }
 
-        // 验证活动归属
+        // 验证活动归属（组织角色需要验证）
         Activity activity = activityMapper.selectById(registration.getActivityId());
-        if (activity == null || !activity.getOrgId().equals(orgId)) {
+        if (activity == null) {
+            throw new BusinessException(404, "活动不存在");
+        }
+        if (orgId != null && !activity.getOrgId().equals(orgId)) {
             throw new BusinessException(403, "只能操作自己活动的报名");
         }
 
@@ -135,7 +164,8 @@ public class OrgRegistrationServiceImpl implements OrgRegistrationService {
         record.setRegId(dto.getRegId());
         record.setHours(dto.getHours());
         record.setPoints(points);
-        record.setAuditorId(orgId);
+        // 管理员时 orgId 为 null，使用 registration 的 userId 作为审核者标识
+        record.setAuditorId(orgId != null ? orgId : registration.getUserId());
         recordMapper.insert(record);
 
         log.info("时长发放成功: regId={}, hours={}, points={}", dto.getRegId(), dto.getHours(), points);

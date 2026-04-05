@@ -50,6 +50,9 @@ public class ActivityListVO {
     /** 拒绝原因 */
     private String rejectReason;
 
+    /** 发起组织ID */
+    private Long orgId;
+
     /** 发起组织名称 */
     private String orgName;
 

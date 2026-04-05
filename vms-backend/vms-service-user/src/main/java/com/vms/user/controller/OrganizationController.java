@@ -109,6 +109,18 @@ public class OrganizationController {
         return Result.successMsg("更新成功");
     }
 
+    // ==================== 公开接口 ====================
+
+    /**
+     * 获取组织详情（公开，所有登录用户可访问）
+     * 用于志愿者查看组织信息
+     */
+    @GetMapping("/public/{orgId}")
+    public Result<OrgDetailVO> getPublicOrgDetail(@PathVariable("orgId") Long orgId) {
+        OrgDetailVO vo = organizationService.getOrgDetail(orgId);
+        return Result.success(vo);
+    }
+
     // ==================== 辅助方法 ====================
 
     private Long getUserIdFromToken(String authorization) {

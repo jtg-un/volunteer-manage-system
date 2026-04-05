@@ -53,9 +53,9 @@ public class PublicActivityServiceImpl implements PublicActivityService {
     private LambdaQueryWrapper<Activity> buildQueryWrapper(ActivityQueryDTO query) {
         LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
 
-        // 地区前缀匹配
+        // 地区前缀匹配（支持省/市/区任意级别）
         if (query.getRegionCode() != null && !query.getRegionCode().isEmpty()) {
-            wrapper.likeRight(Activity::getRegionCode, query.getRegionCode().substring(0, 2));
+            wrapper.likeRight(Activity::getRegionCode, query.getRegionCode());
         }
         // 服务类别
         if (query.getCategoryId() != null && !query.getCategoryId().isEmpty()) {

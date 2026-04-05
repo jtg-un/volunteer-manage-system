@@ -2,93 +2,101 @@
   <div class="org-registrations">
     <el-card>
       <template #header>
-        <div class="card-header">
-          <span>报名管理</span>
-          <el-select v-model="selectedActivity" placeholder="选择活动" @change="loadData" clearable style="width: 300px">
-            <el-option
-              v-for="activity in activities"
-              :key="activity.activityId"
-              :label="activity.title"
-              :value="activity.activityId"
-            />
-          </el-select>
-        </div>
+        <span>报名管理</span>
       </template>
 
-      <template v-if="selectedActivity">
-        <!-- 筛选 -->
-        <div class="filter-bar">
-          <el-radio-group v-model="statusFilter" @change="loadData">
-            <el-radio-button :value="null">全部</el-radio-button>
-            <el-radio-button :value="0">待审核</el-radio-button>
-            <el-radio-button :value="1">已通过</el-radio-button>
-            <el-radio-button :value="2">已拒绝</el-radio-button>
-          </el-radio-group>
-        </div>
+      <!-- 筛选工具栏 -->
+      <div class="filter-toolbar">
+        <el-select v-model="selectedActivity" placeholder="全部活动" clearable style="width: 300px" @change="handleFilterChange">
+          <el-option
+            v-for="activity in activities"
+            :key="activity.activityId"
+            :label="activity.title"
+            :value="activity.activityId"
+          />
+        </el-select>
+        <el-radio-group v-model="statusFilter" @change="handleFilterChange" style="margin-left: 20px">
+          <el-radio-button :value="null">全部</el-radio-button>
+          <el-radio-button :value="0">待审核</el-radio-button>
+          <el-radio-button :value="1">已通过</el-radio-button>
+          <el-radio-button :value="2">已拒绝</el-radio-button>
+          <el-radio-button :value="3">已取消</el-radio-button>
+        </el-radio-group>
+      </div>
 
-        <el-table :data="registrations" v-loading="loading">
-          <el-table-column prop="realName" label="姓名" width="100" />
-          <el-table-column prop="phone" label="手机号" width="130" />
-          <el-table-column prop="posName" label="岗位" width="120" />
-          <el-table-column prop="statusName" label="状态" width="100">
-            <template #default="{ row }">
-              <el-tag :type="getStatusType(row.regStatus)" size="small">
-                {{ row.statusName }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="签到状态" width="100">
-            <template #default="{ row }">
-              <template v-if="row.regStatus === 1">
-                <el-tag v-if="row.checkedOut" type="success" size="small">已签退</el-tag>
-                <el-tag v-else-if="row.checkedIn" type="warning" size="small">已签到</el-tag>
-                <span v-else>-</span>
-              </template>
+      <el-table :data="registrations" v-loading="loading">
+        <el-table-column label="活动" min-width="150">
+          <template #default="{ row }">
+            <el-link type="primary" @click="showActivityDetail(row.activityId)">
+              {{ row.activityTitle }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column label="姓名" width="100">
+          <template #default="{ row }">
+            <el-link type="primary" @click="showVolunteerDetail(row)">
+              {{ row.realName }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="phone" label="手机号" width="130" />
+        <el-table-column prop="posName" label="岗位" width="120" />
+        <el-table-column prop="statusName" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.regStatus)" size="small">
+              {{ row.statusName }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="签到状态" width="100">
+          <template #default="{ row }">
+            <template v-if="row.regStatus === 1">
+              <el-tag v-if="row.checkedOut" type="success" size="small">已签退</el-tag>
+              <el-tag v-else-if="row.checkedIn" type="warning" size="small">已签到</el-tag>
               <span v-else>-</span>
             </template>
-          </el-table-column>
-          <el-table-column label="时长" width="80">
-            <template #default="{ row }">
-              <template v-if="row.hoursIssued">
-                <span style="color: #67c23a">{{ row.hours }}h</span>
-              </template>
-              <span v-else>-</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="时长" width="80">
+          <template #default="{ row }">
+            <template v-if="row.hoursIssued">
+              <span style="color: #67c23a">{{ row.hours }}h</span>
             </template>
-          </el-table-column>
-          <el-table-column prop="createTime" label="报名时间" width="160">
-            <template #default="{ row }">
-              {{ formatDateTime(row.createTime) }}
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="报名时间" width="160">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="280" fixed="right">
+          <template #default="{ row }">
+            <template v-if="row.regStatus === 0">
+              <el-button type="primary" size="small" @click="handleAudit(row, 1)">通过</el-button>
+              <el-button type="danger" size="small" @click="handleAudit(row, 2)">拒绝</el-button>
             </template>
-          </el-table-column>
-          <el-table-column label="操作" width="280" fixed="right">
-            <template #default="{ row }">
-              <template v-if="row.regStatus === 0">
-                <el-button type="primary" size="small" @click="handleAudit(row, 1)">通过</el-button>
-                <el-button type="danger" size="small" @click="handleAudit(row, 2)">拒绝</el-button>
-              </template>
-              <template v-if="row.regStatus === 1 && row.checkedOut && !row.hoursIssued">
-                <el-button type="success" size="small" @click="showHoursDialog(row)">发放时长</el-button>
-              </template>
-              <template v-if="row.regStatus === 1 && row.hoursIssued">
-                <el-button v-if="row.evaluated" type="info" size="small" @click="showEvaluationDialog(row, true)">查看评价</el-button>
-                <el-button v-else type="warning" size="small" @click="showEvaluationDialog(row, false)">评价</el-button>
-              </template>
+            <template v-if="row.regStatus === 1 && row.checkedOut && !row.hoursIssued">
+              <el-button type="success" size="small" @click="showHoursDialog(row)">发放时长</el-button>
             </template>
-          </el-table-column>
-        </el-table>
+            <template v-if="row.regStatus === 1 && row.hoursIssued">
+              <el-button v-if="row.evaluated" type="info" size="small" @click="showEvaluationDialog(row, true)">查看评价</el-button>
+              <el-button v-else type="warning" size="small" @click="showEvaluationDialog(row, false)">评价</el-button>
+            </template>
+          </template>
+        </el-table-column>
+      </el-table>
 
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.size"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next"
-          @size-change="loadData"
-          @current-change="loadData"
-        />
-      </template>
-
-      <el-empty v-else description="请先选择一个活动" />
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.size"
+        :total="pagination.total"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next"
+        @size-change="loadData"
+        @current-change="loadData"
+      />
     </el-card>
 
     <!-- 发放时长弹窗 -->
@@ -139,6 +147,18 @@
         <el-button v-if="!isViewMode" type="primary" @click="handleEvaluate">提交评价</el-button>
       </template>
     </el-dialog>
+
+    <!-- 活动详情弹窗 -->
+    <OrgActivityDetailDialog
+      v-model="activityDetailVisible"
+      :activity-id="selectedActivityId"
+    />
+
+    <!-- 报名者详情弹窗 -->
+    <VolunteerDetailDialog
+      v-model="volunteerDetailVisible"
+      :registration="selectedRegistration"
+    />
   </div>
 </template>
 
@@ -148,6 +168,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRegistrations, auditRegistration, confirmHours } from '@/api/orgReg'
 import { getMyActivities } from '@/api/activity'
 import { evaluateVolunteer, getEvaluationByRegId, checkEvaluated } from '@/api/evaluation'
+import OrgActivityDetailDialog from '@/components/org/OrgActivityDetailDialog.vue'
+import VolunteerDetailDialog from '@/components/org/VolunteerDetailDialog.vue'
 
 const loading = ref(false)
 const activities = ref([])
@@ -182,6 +204,14 @@ const evalForm = reactive({
   comment: ''
 })
 
+// 活动详情弹窗
+const activityDetailVisible = ref(false)
+const selectedActivityId = ref(null)
+
+// 报名者详情弹窗
+const volunteerDetailVisible = ref(false)
+const selectedRegistration = ref(null)
+
 // 计算综合评分
 const avgScore = computed(() => {
   return ((evalForm.scoreTraining + evalForm.scoreCooperation + evalForm.scoreExecution) / 3).toFixed(2)
@@ -196,6 +226,7 @@ watch(() => hoursForm.hours, (val) => {
 
 onMounted(() => {
   loadActivities()
+  loadData()
 })
 
 async function loadActivities() {
@@ -207,19 +238,25 @@ async function loadActivities() {
   }
 }
 
-async function loadData() {
-  if (!selectedActivity.value) {
-    registrations.value = []
-    return
-  }
+function handleFilterChange() {
+  pagination.page = 1
+  loadData()
+}
 
+async function loadData() {
   loading.value = true
   try {
-    const res = await getRegistrations(selectedActivity.value, {
+    const params = {
       status: statusFilter.value,
       page: pagination.page,
       size: pagination.size
-    })
+    }
+    // 如果选择了活动，添加活动筛选
+    if (selectedActivity.value) {
+      params.activityId = selectedActivity.value
+    }
+
+    const res = await getRegistrations(params)
     registrations.value = res.records || []
     pagination.total = res.total || 0
 
@@ -348,6 +385,18 @@ function getStatusType(status) {
   }
   return types[status] || 'info'
 }
+
+// 显示活动详情弹窗
+function showActivityDetail(activityId) {
+  selectedActivityId.value = activityId
+  activityDetailVisible.value = true
+}
+
+// 显示报名者详情弹窗
+function showVolunteerDetail(reg) {
+  selectedRegistration.value = reg
+  volunteerDetailVisible.value = true
+}
 </script>
 
 <style scoped>
@@ -355,14 +404,12 @@ function getStatusType(status) {
   padding: 20px;
 }
 
-.card-header {
+.filter-toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.filter-bar {
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .el-pagination {

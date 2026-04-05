@@ -16,6 +16,9 @@ public class EvaluationVO {
     /** 报名ID */
     private Long regId;
 
+    /** 活动ID */
+    private Long activityId;
+
     /** 活动标题 */
     private String activityTitle;
 

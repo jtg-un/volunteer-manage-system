@@ -4,9 +4,9 @@ import request from '@/utils/request'
  * 组织端报名管理 API
  */
 
-// 获取活动的报名列表
-export function getRegistrations(activityId, params) {
-  return request.get(`/org/registration/list/${activityId}`, { params })
+// 获取报名列表（activityId可选，不传则查询所有活动）
+export function getRegistrations(params) {
+  return request.get('/org/registration/list', { params })
 }
 
 // 审核报名

@@ -75,6 +75,7 @@ public class VolunteerRecordServiceImpl implements VolunteerRecordService {
 
                     Long activityId = regToActivityMap.get(record.getRegId());
                     if (activityId != null) {
+                        vo.setActivityId(activityId);
                         Activity activity = activityMap.get(activityId);
                         if (activity != null) {
                             vo.setActivityTitle(activity.getTitle());

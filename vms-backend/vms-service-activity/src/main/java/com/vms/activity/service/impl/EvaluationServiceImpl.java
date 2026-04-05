@@ -150,6 +150,7 @@ public class EvaluationServiceImpl implements EvaluationService {
             // 查询活动信息
             Activity activity = activityMapper.selectById(registration.getActivityId());
             if (activity != null) {
+                vo.setActivityId(activity.getActivityId());
                 vo.setActivityTitle(activity.getTitle());
 
                 // 查询组织信息
@@ -226,6 +227,7 @@ public class EvaluationServiceImpl implements EvaluationService {
                     if (reg != null) {
                         Activity activity = activityMap.get(reg.getActivityId());
                         if (activity != null) {
+                            vo.setActivityId(activity.getActivityId());
                             vo.setActivityTitle(activity.getTitle());
 
                             Organization org = orgMap.get(activity.getOrgId());

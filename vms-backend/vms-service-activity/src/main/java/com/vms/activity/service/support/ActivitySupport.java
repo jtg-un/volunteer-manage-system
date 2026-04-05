@@ -180,6 +180,7 @@ public class ActivitySupport {
         // 填充关联数据
         vo.setCategoryName(getCategoryName(activity.getCategoryId()));
         vo.setRegionName(getRegionName(activity.getRegionCode()));
+        vo.setOrgId(activity.getOrgId());
         vo.setOrgName(getOrgName(activity.getOrgId()));
 
         // 岗位统计

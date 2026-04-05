@@ -25,6 +25,11 @@ export function updateOrg(data) {
   return request.put('/org/my', data)
 }
 
+// 获取组织详情（公开接口，所有用户可访问）
+export function getPublicOrgDetail(orgId) {
+  return request.get(`/org/public/${orgId}`)
+}
+
 // 获取字典
 export function getDict(dictType) {
   return request.get(`/dict/${dictType}`)

@@ -27,15 +27,50 @@
           </el-select>
         </el-form-item>
         <el-form-item label="所属地区">
-          <el-cascader
-            v-model="queryParams.regionCodes"
-            :options="regionOptions"
-            :props="regionProps"
-            placeholder="全部地区"
+          <el-select
+            v-model="selectedProvince"
+            placeholder="选择省"
             clearable
-            style="width: 200px"
-            @change="handleRegionChange"
-          />
+            style="width: 120px"
+            @change="handleProvinceChange"
+          >
+            <el-option
+              v-for="item in provinceList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
+          <el-select
+            v-model="selectedCity"
+            placeholder="选择市"
+            clearable
+            style="width: 120px; margin-left: 8px"
+            :disabled="!selectedProvince"
+            @change="handleCityChange"
+          >
+            <el-option
+              v-for="item in cityList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
+          <el-select
+            v-model="selectedDistrict"
+            placeholder="选择区"
+            clearable
+            style="width: 120px; margin-left: 8px"
+            :disabled="!selectedCity"
+            @change="handleDistrictChange"
+          >
+            <el-option
+              v-for="item in districtList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="活动状态">
           <el-select
@@ -69,7 +104,13 @@
         </el-table-column>
         <el-table-column prop="categoryName" label="服务类别" width="120" />
         <el-table-column prop="regionName" label="所属地区" width="120" />
-        <el-table-column prop="orgName" label="发起组织" width="150" />
+        <el-table-column label="发起组织" width="150">
+          <template #default="{ row }">
+            <el-link type="primary" @click="showOrgDetail(row.orgId)">
+              {{ row.orgName }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column label="报名时间" width="200">
           <template #default="{ row }">
             {{ formatTimeRange(row.startTime, row.endTime) }}
@@ -114,8 +155,14 @@
     <ActivityDetailDialog
       v-model="detailVisible"
       :data="detailData"
-      :show-register="userStore.isVolunteer && detailData.status === 1"
+      :show-register="userStore.isVolunteer && detailData.status === 0"
       @register="handleRegister"
+    />
+
+    <!-- 组织详情弹窗 -->
+    <OrgDetailDialog
+      v-model="orgDetailVisible"
+      :org-id="selectedOrgId"
     />
   </div>
 </template>
@@ -130,6 +177,7 @@ import { useRegion } from '@/composables/useRegion'
 import { getStatusType, formatTimeRange, getCountClass } from '@/utils/activity'
 import { useUserStore } from '@/stores/user'
 import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
+import OrgDetailDialog from '@/components/org/OrgDetailDialog.vue'
 
 const userStore = useUserStore()
 const loading = ref(false)
@@ -139,15 +187,30 @@ const activityList = ref([])
 const total = ref(0)
 const categoryList = ref([])
 
-const { regionOptions, regionProps, loadProvinces } = useRegion()
+// 组织详情弹窗
+const orgDetailVisible = ref(false)
+const selectedOrgId = ref(null)
+
+const {
+  provinceList,
+  cityList,
+  districtList,
+  selectedProvince,
+  selectedCity,
+  selectedDistrict,
+  regionCode,
+  loadProvinces,
+  handleProvinceChange,
+  handleCityChange,
+  handleDistrictChange,
+  resetRegion
+} = useRegion()
 
 const queryParams = reactive({
   page: 1,
   size: 10,
   keyword: '',
   categoryId: '',
-  regionCodes: [],
-  regionCode: '',
   status: null
 })
 
@@ -176,7 +239,7 @@ async function loadActivityList() {
       size: queryParams.size,
       keyword: queryParams.keyword || undefined,
       categoryId: queryParams.categoryId || undefined,
-      regionCode: queryParams.regionCode || undefined,
+      regionCode: regionCode.value || undefined,
       status: queryParams.status
     }
     const res = await getActivityList(params)
@@ -189,10 +252,6 @@ async function loadActivityList() {
   }
 }
 
-function handleRegionChange(value) {
-  queryParams.regionCode = value[value.length - 1] || ''
-}
-
 function handleSearch() {
   queryParams.page = 1
   loadActivityList()
@@ -201,10 +260,9 @@ function handleSearch() {
 function handleReset() {
   queryParams.keyword = ''
   queryParams.categoryId = ''
-  queryParams.regionCodes = []
-  queryParams.regionCode = ''
   queryParams.status = null
   queryParams.page = 1
+  resetRegion()
   loadActivityList()
 }
 
@@ -241,6 +299,12 @@ async function handleRegister(data) {
       console.error('报名失败:', error)
     }
   }
+}
+
+// 显示组织详情弹窗
+function showOrgDetail(orgId) {
+  selectedOrgId.value = orgId
+  orgDetailVisible.value = true
 }
 </script>
 
