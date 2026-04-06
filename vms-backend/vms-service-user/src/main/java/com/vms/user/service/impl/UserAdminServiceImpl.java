@@ -29,13 +29,29 @@ public class UserAdminServiceImpl implements UserAdminService {
     private final OrganizationMapper organizationMapper;
 
     @Override
-    public Page<UserInfoVO> listUsers(Integer role, int page, int size) {
+    public Page<UserInfoVO> listUsers(String keyword, Integer role, Integer status, int page, int size) {
         Page<SysUser> userPage = new Page<>(page, size);
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
 
+        // 关键词搜索（用户名、姓名、手机号）
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.and(w -> w
+                    .like(SysUser::getUsername, keyword)
+                    .or().like(SysUser::getRealName, keyword)
+                    .or().like(SysUser::getPhone, keyword)
+            );
+        }
+
+        // 角色筛选
         if (role != null) {
             wrapper.eq(SysUser::getRole, role);
         }
+
+        // 状态筛选
+        if (status != null) {
+            wrapper.eq(SysUser::getStatus, status);
+        }
+
         wrapper.orderByDesc(SysUser::getCreateTime);
 
         Page<SysUser> result = sysUserMapper.selectPage(userPage, wrapper);

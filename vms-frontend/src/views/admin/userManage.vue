@@ -2,18 +2,35 @@
   <div class="user-manage">
     <el-card>
       <template #header>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span>用户管理</span>
-        </div>
+        <span>用户管理</span>
       </template>
 
-      <!-- 筛选 -->
+      <!-- 搜索筛选 -->
       <el-form :inline="true" style="margin-bottom: 20px;">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="keyword"
+            placeholder="搜索用户名/姓名/手机号"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
         <el-form-item label="角色">
-          <el-select v-model="filterRole" placeholder="全部" clearable @change="fetchData">
+          <el-select v-model="filterRole" placeholder="全部" clearable style="width: 120px" @change="handleSearch">
             <el-option label="志愿者" :value="0" />
             <el-option label="组织负责人" :value="1" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="filterStatus" placeholder="全部" clearable style="width: 100px" @change="handleSearch">
+            <el-option label="正常" :value="1" />
+            <el-option label="禁用" :value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
 
@@ -82,7 +99,9 @@ import { getUserList, updateUserStatus } from '@/api/user'
 
 const loading = ref(false)
 const tableData = ref([])
+const keyword = ref('')
 const filterRole = ref(null)
+const filterStatus = ref(null)
 const pagination = ref({
   page: 1,
   size: 10,
@@ -93,7 +112,9 @@ const fetchData = async () => {
   loading.value = true
   try {
     const res = await getUserList({
+      keyword: keyword.value || undefined,
       role: filterRole.value,
+      status: filterStatus.value,
       page: pagination.value.page,
       size: pagination.value.size
     })
@@ -106,6 +127,19 @@ const fetchData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleSearch = () => {
+  pagination.value.page = 1
+  fetchData()
+}
+
+const handleReset = () => {
+  keyword.value = ''
+  filterRole.value = null
+  filterStatus.value = null
+  pagination.value.page = 1
+  fetchData()
 }
 
 const handleStatusChange = (row, targetStatus) => {

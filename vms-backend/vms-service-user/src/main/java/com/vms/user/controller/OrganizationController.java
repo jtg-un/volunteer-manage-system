@@ -41,6 +41,7 @@ public class OrganizationController {
     public Result<Page<OrgListVO>> getOrgList(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "auditStatus", required = false) Integer auditStatus,
             @RequestHeader("Authorization") String authorization) {
         // 验证管理员权限
@@ -48,7 +49,7 @@ public class OrganizationController {
             throw new BusinessException(403, "无权限访问");
         }
 
-        Page<OrgListVO> result = organizationService.getPendingList(page, size, auditStatus);
+        Page<OrgListVO> result = organizationService.getPendingList(page, size, keyword, auditStatus);
         return Result.success(result);
     }
 

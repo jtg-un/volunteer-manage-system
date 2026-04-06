@@ -2,16 +2,32 @@
   <div class="org-audit-page">
     <el-card>
       <template #header>
-        <div class="card-header">
-          <span>组织审核管理</span>
-          <el-select v-model="auditStatus" placeholder="审核状态" clearable @change="handleSearch" style="width: 150px">
-            <el-option label="全部" :value="null" />
+        <span>组织审核管理</span>
+      </template>
+
+      <!-- 搜索筛选 -->
+      <el-form :inline="true" style="margin-bottom: 20px;">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="keyword"
+            placeholder="搜索队伍名称/联系人/电话"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
+        <el-form-item label="审核状态">
+          <el-select v-model="auditStatus" placeholder="全部" clearable style="width: 120px" @change="handleSearch">
             <el-option label="待审核" :value="0" />
             <el-option label="已通过" :value="1" />
             <el-option label="已拒绝" :value="2" />
           </el-select>
-        </div>
-      </template>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="orgId" label="ID" width="80" />
@@ -91,6 +107,7 @@ const tableData = ref([])
 const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
+const keyword = ref('')
 const auditStatus = ref(null)
 
 const detailVisible = ref(false)
@@ -111,6 +128,9 @@ async function fetchData() {
       page: pageNum.value,
       size: pageSize.value
     }
+    if (keyword.value) {
+      params.keyword = keyword.value
+    }
     if (auditStatus.value !== null) {
       params.auditStatus = auditStatus.value
     }
@@ -127,6 +147,13 @@ async function fetchData() {
 }
 
 function handleSearch() {
+  pageNum.value = 1
+  fetchData()
+}
+
+function handleReset() {
+  keyword.value = ''
+  auditStatus.value = null
   pageNum.value = 1
   fetchData()
 }

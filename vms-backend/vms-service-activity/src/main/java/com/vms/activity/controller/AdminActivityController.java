@@ -29,12 +29,14 @@ public class AdminActivityController {
     public Result<Page<ActivityListVO>> listPending(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "orgName", required = false) String orgName,
             @RequestParam(value = "status", required = false) Integer status,
             @RequestHeader("Authorization") String authorization) {
 
         userContext.requireAdmin(authorization);
 
-        Page<ActivityListVO> result = adminActivityService.listPending(page, size, status);
+        Page<ActivityListVO> result = adminActivityService.listPending(page, size, keyword, orgName, status);
         return Result.success(result);
     }
 

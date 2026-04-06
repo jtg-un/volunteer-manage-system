@@ -12,12 +12,14 @@ public interface UserAdminService {
 
     /**
      * 获取用户列表（分页）
+     * @param keyword 关键词（用户名/姓名/手机号）
      * @param role 角色筛选（可选）
+     * @param status 状态筛选（可选）
      * @param page 页码
      * @param size 每页数量
      * @return 用户列表
      */
-    Page<UserInfoVO> listUsers(Integer role, int page, int size);
+    Page<UserInfoVO> listUsers(String keyword, Integer role, Integer status, int page, int size);
 
     /**
      * 更新用户状态（封禁/启用）

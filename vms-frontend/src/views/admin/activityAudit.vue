@@ -5,17 +5,40 @@
         <span>活动管理</span>
       </template>
 
-      <!-- 筛选工具栏 -->
-      <div style="margin-bottom: 16px; display: flex; gap: 16px;">
-        <el-select v-model="filterStatus" placeholder="活动状态" clearable style="width: 120px;" @change="handleSearch">
-          <el-option label="待审核" :value="3" />
-          <el-option label="待启动" :value="0" />
-          <el-option label="运行中" :value="1" />
-          <el-option label="已结项" :value="2" />
-          <el-option label="已拒绝" :value="4" />
-        </el-select>
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-      </div>
+      <!-- 搜索筛选 -->
+      <el-form :inline="true" style="margin-bottom: 16px;">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="keyword"
+            placeholder="搜索活动标题/项目编号"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
+        <el-form-item label="发起组织">
+          <el-input
+            v-model="orgName"
+            placeholder="搜索组织名称"
+            clearable
+            style="width: 150px"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
+        <el-form-item label="活动状态">
+          <el-select v-model="filterStatus" placeholder="全部" clearable style="width: 120px" @change="handleSearch">
+            <el-option label="待审核" :value="3" />
+            <el-option label="待启动" :value="0" />
+            <el-option label="运行中" :value="1" />
+            <el-option label="已结项" :value="2" />
+            <el-option label="已拒绝" :value="4" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="projectCode" label="项目编号" width="150" />
@@ -124,6 +147,8 @@ const pagination = ref({
   total: 0
 })
 
+const keyword = ref('')
+const orgName = ref('')
 const filterStatus = ref(null)
 const detailVisible = ref(false)
 const currentActivityId = ref(null)
@@ -142,6 +167,8 @@ const fetchData = async () => {
     const res = await getPendingActivities({
       page: pagination.value.page,
       size: pagination.value.size,
+      keyword: keyword.value || undefined,
+      orgName: orgName.value || undefined,
       status: filterStatus.value
     })
     tableData.value = res.records || []
@@ -155,6 +182,14 @@ const fetchData = async () => {
 }
 
 const handleSearch = () => {
+  pagination.value.page = 1
+  fetchData()
+}
+
+const handleReset = () => {
+  keyword.value = ''
+  orgName.value = ''
+  filterStatus.value = null
   pagination.value.page = 1
   fetchData()
 }

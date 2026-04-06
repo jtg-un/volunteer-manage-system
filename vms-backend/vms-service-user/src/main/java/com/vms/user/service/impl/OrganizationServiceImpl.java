@@ -33,13 +33,25 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final SysUserMapper sysUserMapper;
 
     @Override
-    public Page<OrgListVO> getPendingList(int page, int size, Integer auditStatus) {
+    public Page<OrgListVO> getPendingList(int page, int size, String keyword, Integer auditStatus) {
         Page<Organization> pageParam = new Page<>(page, size);
 
         LambdaQueryWrapper<Organization> wrapper = new LambdaQueryWrapper<>();
+
+        // 关键词搜索（队伍名称、联系人、联系电话）
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.and(w -> w
+                    .like(Organization::getOrgName, keyword)
+                    .or().like(Organization::getContactPerson, keyword)
+                    .or().like(Organization::getContactPhone, keyword)
+            );
+        }
+
+        // 审核状态筛选
         if (auditStatus != null) {
             wrapper.eq(Organization::getAuditStatus, auditStatus);
         }
+
         wrapper.orderByDesc(Organization::getOrgId);
 
         Page<Organization> orgPage = organizationMapper.selectPage(pageParam, wrapper);

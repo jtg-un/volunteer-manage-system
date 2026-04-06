@@ -27,13 +27,15 @@ public class UserAdminController {
      */
     @GetMapping("/list")
     public Result<Page<UserInfoVO>> list(
+            @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "role", required = false) Integer role,
+            @RequestParam(value = "status", required = false) Integer status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestHeader("Authorization") String authorization) {
 
         userContext.requireAdmin(authorization);
-        Page<UserInfoVO> result = userAdminService.listUsers(role, page, size);
+        Page<UserInfoVO> result = userAdminService.listUsers(keyword, role, status, page, size);
         return Result.success(result);
     }
 
