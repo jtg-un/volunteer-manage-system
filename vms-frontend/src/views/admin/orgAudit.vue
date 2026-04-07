@@ -23,6 +23,34 @@
             <el-option label="已拒绝" :value="2" />
           </el-select>
         </el-form-item>
+        <el-form-item label="单位类型">
+          <el-select v-model="unitType" placeholder="全部" clearable style="width: 120px" @change="handleSearch">
+            <el-option
+              v-for="item in unitTypeList"
+              :key="item.dictValue"
+              :label="item.dictLabel"
+              :value="item.dictValue"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="所属地区">
+          <el-select v-model="selectedProvince" placeholder="省份" clearable style="width: 120px" @change="handleProvinceChange">
+            <el-option
+              v-for="item in provinceList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
+          <el-select v-model="selectedCity" placeholder="城市" clearable style="width: 120px; margin-left: 10px" @change="handleSearch">
+            <el-option
+              v-for="item in cityList"
+              :key="item.regionCode"
+              :label="item.regionName"
+              :value="item.regionCode"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
@@ -33,6 +61,16 @@
         <el-table-column prop="orgId" label="ID" width="80" />
         <el-table-column prop="username" label="账号" width="120" />
         <el-table-column prop="orgName" label="队伍名称" min-width="150" />
+        <el-table-column prop="unitTypeName" label="单位类型" width="100">
+          <template #default="{ row }">
+            {{ row.unitTypeName || row.unitType || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="regionName" label="所属地区" width="120">
+          <template #default="{ row }">
+            {{ row.regionName || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="contactPerson" label="联系人" width="100" />
         <el-table-column prop="contactPhone" label="联系电话" width="130" />
         <el-table-column label="审核状态" width="100">
@@ -66,10 +104,12 @@
       <el-descriptions :column="2" border v-if="currentOrg">
         <el-descriptions-item label="账号">{{ currentOrg.username }}</el-descriptions-item>
         <el-descriptions-item label="队伍名称">{{ currentOrg.orgName }}</el-descriptions-item>
+        <el-descriptions-item label="联络编号">{{ currentOrg.orgCode || '未生成' }}</el-descriptions-item>
         <el-descriptions-item label="单位类型">{{ currentOrg.unitType || '未填写' }}</el-descriptions-item>
+        <el-descriptions-item label="所属地区">{{ currentOrg.regionName || currentOrg.regionCode || '未填写' }}</el-descriptions-item>
+        <el-descriptions-item label="成立日期">{{ currentOrg.foundDate || '未填写' }}</el-descriptions-item>
         <el-descriptions-item label="联系人">{{ currentOrg.contactPerson }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ currentOrg.contactPhone }}</el-descriptions-item>
-        <el-descriptions-item label="成立日期">{{ currentOrg.foundDate || '未填写' }}</el-descriptions-item>
         <el-descriptions-item label="地址" :span="2">{{ currentOrg.address || '未填写' }}</el-descriptions-item>
         <el-descriptions-item label="简介" :span="2">{{ currentOrg.intro || '未填写' }}</el-descriptions-item>
         <el-descriptions-item label="审核状态">
@@ -101,6 +141,8 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrgList, getOrgDetail, auditOrg } from '@/api/org'
+import { getDict } from '@/api/system'
+import { getRegionList } from '@/api/system'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -109,6 +151,14 @@ const pageSize = ref(10)
 const total = ref(0)
 const keyword = ref('')
 const auditStatus = ref(null)
+const unitType = ref('')
+const selectedProvince = ref('')
+const selectedCity = ref('')
+
+// 字典和地区数据
+const unitTypeList = ref([])
+const provinceList = ref([])
+const cityList = ref([])
 
 const detailVisible = ref(false)
 const currentOrg = ref(null)
@@ -117,9 +167,35 @@ const rejectVisible = ref(false)
 const rejectReason = ref('')
 const pendingOrg = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载单位类型字典
+  try {
+    unitTypeList.value = await getDict('unit_type')
+  } catch {
+    unitTypeList.value = []
+  }
+  // 加载省级地区
+  try {
+    provinceList.value = await getRegionList('')
+  } catch {
+    provinceList.value = []
+  }
   fetchData()
 })
+
+// 省份变更，加载市级
+async function handleProvinceChange(provinceCode) {
+  selectedCity.value = ''
+  cityList.value = []
+  if (provinceCode) {
+    try {
+      cityList.value = await getRegionList(provinceCode)
+    } catch {
+      cityList.value = []
+    }
+  }
+  handleSearch()
+}
 
 async function fetchData() {
   loading.value = true
@@ -133,6 +209,15 @@ async function fetchData() {
     }
     if (auditStatus.value !== null) {
       params.auditStatus = auditStatus.value
+    }
+    if (unitType.value) {
+      params.unitType = unitType.value
+    }
+    // 地区筛选：优先使用市级，如果没有市级则使用省级
+    if (selectedCity.value) {
+      params.regionCode = selectedCity.value
+    } else if (selectedProvince.value) {
+      params.regionCode = selectedProvince.value
     }
     const data = await getOrgList(params)
     tableData.value = data.records || []
@@ -154,6 +239,10 @@ function handleSearch() {
 function handleReset() {
   keyword.value = ''
   auditStatus.value = null
+  unitType.value = ''
+  selectedProvince.value = ''
+  selectedCity.value = ''
+  cityList.value = []
   pageNum.value = 1
   fetchData()
 }

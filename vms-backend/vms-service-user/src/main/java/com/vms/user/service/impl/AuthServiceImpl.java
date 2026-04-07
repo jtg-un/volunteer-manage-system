@@ -19,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 /**
  * 认证服务实现
  */
@@ -80,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
         Organization org = new Organization();
         org.setUserId(user.getUserId());
         org.setOrgName(dto.getOrgName());
+        org.setOrgCode(generateOrgCode()); // 自动生成联络编号
         org.setUnitType(dto.getUnitType());
         org.setRegionCode(dto.getRegionCode());
         org.setFoundDate(dto.getFoundDate());
@@ -90,7 +94,38 @@ public class AuthServiceImpl implements AuthService {
         org.setAuditStatus(0); // 待审核
         organizationMapper.insert(org);
 
-        log.info("组织注册成功，待审核: {} - {}", dto.getUsername(), dto.getOrgName());
+        log.info("组织注册成功，待审核: {} - {} (联络编号: {})", dto.getUsername(), dto.getOrgName(), org.getOrgCode());
+    }
+
+    /**
+     * 自动生成队伍联络编号
+     * 格式: ORG + YYYYMMDD + 3位序号
+     * 示例: ORG20260407001
+     */
+    private String generateOrgCode() {
+        String datePrefix = "ORG" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        // 查询今天已有的最大序号
+        LambdaQueryWrapper<Organization> wrapper = new LambdaQueryWrapper<>();
+        wrapper.likeRight(Organization::getOrgCode, datePrefix)
+               .orderByDesc(Organization::getOrgCode)
+               .last("LIMIT 1");
+        Organization lastOrg = organizationMapper.selectOne(wrapper);
+
+        int sequence = 1;
+        if (lastOrg != null && lastOrg.getOrgCode() != null) {
+            String lastCode = lastOrg.getOrgCode();
+            if (lastCode.startsWith(datePrefix)) {
+                String lastSeq = lastCode.substring(datePrefix.length());
+                try {
+                    sequence = Integer.parseInt(lastSeq) + 1;
+                } catch (NumberFormatException e) {
+                    sequence = 1;
+                }
+            }
+        }
+
+        return datePrefix + String.format("%03d", sequence);
     }
 
     @Override

@@ -30,6 +30,9 @@ public class OrgDetailVO {
     /** 属地编码 */
     private String regionCode;
 
+    /** 属地名称 */
+    private String regionName;
+
     /** 成立日期 */
     private LocalDate foundDate;
 

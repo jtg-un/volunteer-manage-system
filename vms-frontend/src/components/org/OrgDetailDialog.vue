@@ -23,6 +23,9 @@
         <el-descriptions-item label="单位类型">
           {{ getUnitTypeName(org.unitType) || '-' }}
         </el-descriptions-item>
+        <el-descriptions-item label="所属地区">
+          {{ org.regionName || org.regionCode || '-' }}
+        </el-descriptions-item>
         <el-descriptions-item label="成立日期">
           {{ org.foundDate || '-' }}
         </el-descriptions-item>
@@ -66,15 +69,13 @@ const visible = computed({
 const loading = ref(false)
 const org = ref(null)
 
-// 单位类型映射
+// 单位类型映射（与字典表 unit_type 对应）
 const unitTypeMap = {
-  'government': '政府机关',
   'enterprise': '企业',
-  'social_org': '社会组织',
-  'community': '社区',
   'school': '学校',
-  'hospital': '医院',
-  'other': '其他'
+  'community': '社区',
+  'government': '政府机关',
+  'ngo': '社会组织'
 }
 
 // 监听弹窗打开，加载组织详情

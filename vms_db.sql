@@ -1,7 +1,7 @@
 /*
  Navicat Premium Dump SQL
 
- Source Server         : spbt
+ Source Server         : bysx
  Source Server Type    : MySQL
  Source Server Version : 80027 (8.0.27)
  Source Host           : localhost:3306
@@ -11,7 +11,7 @@
  Target Server Version : 80027 (8.0.27)
  File Encoding         : 65001
 
- Date: 05/04/2026 17:32:48
+ Date: 07/04/2026 21:05:41
 */
 
 SET NAMES utf8mb4;
@@ -173,7 +173,7 @@ CREATE TABLE `organization`  (
   UNIQUE INDEX `user_id`(`user_id` ASC) USING BTREE,
   UNIQUE INDEX `org_code`(`org_code` ASC) USING BTREE,
   CONSTRAINT `fk_org_user` FOREIGN KEY (`user_id`) REFERENCES `sys_user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '志愿队伍详情表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '志愿队伍详情表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of organization
@@ -182,6 +182,8 @@ INSERT INTO `organization` VALUES (1, 10, '阳光志愿服务总队', 'ORG001', 
 INSERT INTO `organization` VALUES (2, 11, '爱心公益联盟', 'ORG002', 'ngo', '1101', '2022-08-20', '钱主任', '13900139002', '北京市朝阳区建国路88号', '专业的社会公益组织，长期开展扶贫帮困、教育支持等志愿活动。', 1, '2026-03-18 12:55:43', 20, NULL);
 INSERT INTO `organization` VALUES (3, 12, '待审志愿服务队', 'ORG003', 'enterprise', '3101', '2024-01-10', '孙经理', '13900139003', '上海市浦东新区陆家嘴', '企业志愿服务团队申请。', 2, '2026-03-18 12:55:43', 20, '组织资质材料不完整，请补充营业执照副本和志愿服务计划书。');
 INSERT INTO `organization` VALUES (5, 22, '队伍04', NULL, NULL, NULL, NULL, '王先生', '13390238129', '', '', 2, '2026-03-19 17:14:21', 20, '拒绝');
+INSERT INTO `organization` VALUES (6, 23, '队伍06', NULL, NULL, NULL, NULL, '张展', '13567852312', '地址', '简介很短', 1, '2026-04-07 10:14:42', 20, NULL);
+INSERT INTO `organization` VALUES (7, 24, '组织777', 'ORG20260407001', '社区', '110102', '2026-04-01', '联系人', '18475638490', '地址777', '组织777', 0, NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for registration
@@ -444,7 +446,7 @@ CREATE TABLE `sys_user`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `username`(`username` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户账号表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户账号表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_user
@@ -455,9 +457,11 @@ INSERT INTO `sys_user` VALUES (3, 'zyz03', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfr
 INSERT INTO `sys_user` VALUES (10, 'zz01', '$2a$10$pqq8LEV0RiX25Jhd/DtIzeKiYBdoBKP9J4iiB.c2VfihcDHoMMFtC', '赵队长', 1, '13900139001', 'zz01@test.com', NULL, 1, '2026-03-18 12:55:43');
 INSERT INTO `sys_user` VALUES (11, 'zz02', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '钱主任', 1, '13900139002', 'zz02@test.com', NULL, 1, '2026-03-18 12:55:43');
 INSERT INTO `sys_user` VALUES (12, 'zz03', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '孙经理', 1, '13900139003', 'zz03@test.com', NULL, 0, '2026-03-18 12:55:43');
-INSERT INTO `sys_user` VALUES (20, 'admin', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '系统管理员', 2, '13700137001', 'admin@test.com', NULL, 1, '2026-03-18 12:55:43');
+INSERT INTO `sys_user` VALUES (20, 'admin', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '系统管理员', 2, '13700137001', 'admin@test.com', '/uploads/avatar/2026/04/20_1775487840430.png', 1, '2026-03-18 12:55:43');
 INSERT INTO `sys_user` VALUES (21, 'admin01', '$2a$10$WQTaC/yTzw9zZBE84MqTJOp7FhVfrIxsjt2kXfxNvARPlr2G0GrVq', '管理员01', 2, '13700137002', 'admin01@test.com', NULL, 1, '2026-03-18 12:55:43');
 INSERT INTO `sys_user` VALUES (22, 'zz04', '$2a$10$6M.oQcv.334PDaLVK95gUu/KxO9FN9T3CST.uB1x4kkXCveU1SCRO', '王先生', 1, '13390238129', '', NULL, 0, '2026-03-19 17:12:09');
+INSERT INTO `sys_user` VALUES (23, 'zz666', '$2a$10$3Elq9O1eeDMDgKW22WuDUOXDFD1wEm2Dg3j9RImZFDIameWxuA8QG', '张展', 1, '13567852312', '123@qq.com', NULL, 1, '2026-04-07 10:13:44');
+INSERT INTO `sys_user` VALUES (24, 'zz07', '$2a$10$a3tKqiY5rgaS7uCNbsO6EeNaDd8oH9KQm2cFHqUtiYiK5Y8Xblq.6', '联系人', 1, '18475638490', '', NULL, 0, '2026-04-07 11:33:14');
 
 -- ----------------------------
 -- Table structure for volunteer_record

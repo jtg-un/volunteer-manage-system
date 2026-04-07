@@ -14,7 +14,7 @@ public interface OrganizationService {
     /**
      * 获取待审核组织列表（管理员）
      */
-    Page<OrgListVO> getPendingList(int page, int size, String keyword, Integer auditStatus);
+    Page<OrgListVO> getPendingList(int page, int size, String keyword, Integer auditStatus, String unitType, String regionCode);
 
     /**
      * 获取组织详情

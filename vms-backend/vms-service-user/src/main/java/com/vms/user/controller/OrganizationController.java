@@ -43,13 +43,15 @@ public class OrganizationController {
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "auditStatus", required = false) Integer auditStatus,
+            @RequestParam(value = "unitType", required = false) String unitType,
+            @RequestParam(value = "regionCode", required = false) String regionCode,
             @RequestHeader("Authorization") String authorization) {
         // 验证管理员权限
         if (!isAdmin(authorization)) {
             throw new BusinessException(403, "无权限访问");
         }
 
-        Page<OrgListVO> result = organizationService.getPendingList(page, size, keyword, auditStatus);
+        Page<OrgListVO> result = organizationService.getPendingList(page, size, keyword, auditStatus, unitType, regionCode);
         return Result.success(result);
     }
 

@@ -9,8 +9,10 @@ import com.vms.common.exception.BusinessException;
 import com.vms.common.vo.OrgDetailVO;
 import com.vms.common.vo.OrgListVO;
 import com.vms.repository.entity.Organization;
+import com.vms.repository.entity.SysRegion;
 import com.vms.repository.entity.SysUser;
 import com.vms.repository.mapper.OrganizationMapper;
+import com.vms.repository.mapper.SysRegionMapper;
 import com.vms.repository.mapper.SysUserMapper;
 import com.vms.user.service.OrganizationService;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +33,10 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     private final OrganizationMapper organizationMapper;
     private final SysUserMapper sysUserMapper;
+    private final SysRegionMapper sysRegionMapper;
 
     @Override
-    public Page<OrgListVO> getPendingList(int page, int size, String keyword, Integer auditStatus) {
+    public Page<OrgListVO> getPendingList(int page, int size, String keyword, Integer auditStatus, String unitType, String regionCode) {
         Page<Organization> pageParam = new Page<>(page, size);
 
         LambdaQueryWrapper<Organization> wrapper = new LambdaQueryWrapper<>();
@@ -52,6 +55,16 @@ public class OrganizationServiceImpl implements OrganizationService {
             wrapper.eq(Organization::getAuditStatus, auditStatus);
         }
 
+        // 单位类型筛选
+        if (unitType != null && !unitType.isBlank()) {
+            wrapper.eq(Organization::getUnitType, unitType);
+        }
+
+        // 所属地区筛选（支持模糊匹配前缀，如选择省时匹配所有该省的市/区）
+        if (regionCode != null && !regionCode.isBlank()) {
+            wrapper.likeRight(Organization::getRegionCode, regionCode);
+        }
+
         wrapper.orderByDesc(Organization::getOrgId);
 
         Page<Organization> orgPage = organizationMapper.selectPage(pageParam, wrapper);
@@ -63,6 +76,15 @@ public class OrganizationServiceImpl implements OrganizationService {
             vo.setOrgId(org.getOrgId());
             vo.setOrgName(org.getOrgName());
             vo.setUnitType(org.getUnitType());
+            vo.setUnitTypeName(getUnitTypeName(org.getUnitType()));
+            vo.setRegionCode(org.getRegionCode());
+            // 查询地区名称
+            if (org.getRegionCode() != null && !org.getRegionCode().isEmpty()) {
+                SysRegion region = sysRegionMapper.selectById(org.getRegionCode());
+                if (region != null) {
+                    vo.setRegionName(region.getRegionName());
+                }
+            }
             vo.setContactPerson(org.getContactPerson());
             vo.setContactPhone(org.getContactPhone());
             vo.setAuditStatus(org.getAuditStatus());
@@ -196,6 +218,13 @@ public class OrganizationServiceImpl implements OrganizationService {
         vo.setOrgCode(org.getOrgCode());
         vo.setUnitType(org.getUnitType());
         vo.setRegionCode(org.getRegionCode());
+        // 查询地区名称
+        if (org.getRegionCode() != null && !org.getRegionCode().isEmpty()) {
+            SysRegion region = sysRegionMapper.selectById(org.getRegionCode());
+            if (region != null) {
+                vo.setRegionName(region.getRegionName());
+            }
+        }
         vo.setFoundDate(org.getFoundDate());
         vo.setContactPerson(org.getContactPerson());
         vo.setContactPhone(org.getContactPhone());
@@ -205,5 +234,20 @@ public class OrganizationServiceImpl implements OrganizationService {
         vo.setAuditTime(org.getAuditTime());
         vo.setRejectReason(org.getRejectReason());
         return vo;
+    }
+
+    /**
+     * 获取单位类型名称
+     */
+    private String getUnitTypeName(String unitType) {
+        if (unitType == null) return null;
+        switch (unitType) {
+            case "enterprise": return "企业";
+            case "school": return "学校";
+            case "community": return "社区";
+            case "government": return "政府机关";
+            case "ngo": return "社会组织";
+            default: return unitType;
+        }
     }
 }

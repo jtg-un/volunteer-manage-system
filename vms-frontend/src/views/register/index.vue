@@ -81,6 +81,80 @@
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
+            <el-form-item prop="unitType">
+              <el-select v-model="orgForm.unitType" placeholder="单位类型" clearable style="width: 100%">
+                <el-option
+                  v-for="item in unitTypeList"
+                  :key="item.dictValue"
+                  :label="item.dictLabel"
+                  :value="item.dictValue"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item>
+              <el-date-picker
+                v-model="orgForm.foundDate"
+                type="date"
+                placeholder="成立日期"
+                value-format="YYYY-MM-DD"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="所属地区">
+          <el-row :gutter="10" style="width: 100%">
+            <el-col :span="8">
+              <el-select
+                v-model="selectedProvince"
+                placeholder="选择省份"
+                clearable
+                @change="handleProvinceChange"
+              >
+                <el-option
+                  v-for="item in provinceList"
+                  :key="item.regionCode"
+                  :label="item.regionName"
+                  :value="item.regionCode"
+                />
+              </el-select>
+            </el-col>
+            <el-col :span="8">
+              <el-select
+                v-model="selectedCity"
+                placeholder="选择城市"
+                clearable
+                @change="handleCityChange"
+              >
+                <el-option
+                  v-for="item in cityList"
+                  :key="item.regionCode"
+                  :label="item.regionName"
+                  :value="item.regionCode"
+                />
+              </el-select>
+            </el-col>
+            <el-col :span="8">
+              <el-select
+                v-model="selectedDistrict"
+                placeholder="选择区县"
+                clearable
+                @change="handleDistrictChange"
+              >
+                <el-option
+                  v-for="item in districtList"
+                  :key="item.regionCode"
+                  :label="item.regionName"
+                  :value="item.regionCode"
+                />
+              </el-select>
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-row :gutter="20">
+          <el-col :span="12">
             <el-form-item prop="contactPerson">
               <el-input v-model="orgForm.contactPerson" placeholder="联系人" prefix-icon="UserFilled" />
             </el-form-item>
@@ -122,6 +196,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { registerVolunteer, registerOrg } from '@/api/auth'
+import { getDict } from '@/api/system'
+import { useRegion } from '@/composables/useRegion'
 
 const router = useRouter()
 const route = useRoute()
@@ -131,14 +207,40 @@ const loading = ref(false)
 const volunteerFormRef = ref(null)
 const orgFormRef = ref(null)
 
+// 单位类型列表
+const unitTypeList = ref([])
+
+// 地区级联选择
+const {
+  provinceList,
+  cityList,
+  districtList,
+  selectedProvince,
+  selectedCity,
+  selectedDistrict,
+  regionCode,
+  loadProvinces,
+  handleProvinceChange,
+  handleCityChange,
+  handleDistrictChange,
+  resetRegion
+} = useRegion()
+
 // 是否为固定类型（从登录页跳转过来）
 const isFixedType = computed(() => route.query.type !== undefined)
 
-onMounted(() => {
+onMounted(async () => {
   // 从登录页跳转时，根据 type 参数设置注册类型
   const type = route.query.type
   if (type === '0' || type === '1') {
     registerType.value = parseInt(type)
+  }
+  // 加载单位类型字典和省级地区
+  try {
+    unitTypeList.value = await getDict('unit_type')
+    await loadProvinces()
+  } catch {
+    unitTypeList.value = []
   }
 })
 
@@ -157,6 +259,8 @@ const orgForm = reactive({
   password: '',
   email: '',
   orgName: '',
+  unitType: '',
+  foundDate: '',
   contactPerson: '',
   contactPhone: '',
   address: '',
@@ -211,7 +315,12 @@ async function handleOrgRegister() {
 
   loading.value = true
   try {
-    await registerOrg(orgForm)
+    // 组装表单数据，包含地区编码
+    const submitData = {
+      ...orgForm,
+      regionCode: regionCode.value || undefined
+    }
+    await registerOrg(submitData)
     ElMessage.success('注册成功，请等待审核')
     router.push('/login')
   } finally {

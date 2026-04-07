@@ -21,6 +21,15 @@ public class OrgListVO {
     /** 单位类型 */
     private String unitType;
 
+    /** 单位类型名称 */
+    private String unitTypeName;
+
+    /** 属地编码 */
+    private String regionCode;
+
+    /** 属地名称 */
+    private String regionName;
+
     /** 联系人 */
     private String contactPerson;
 
