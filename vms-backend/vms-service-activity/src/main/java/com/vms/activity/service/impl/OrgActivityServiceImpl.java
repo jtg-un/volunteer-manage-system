@@ -152,11 +152,27 @@ public class OrgActivityServiceImpl implements OrgActivityService {
     }
 
     @Override
-    public Page<MyActivityListVO> listByOrg(Long orgId, int page, int size) {
+    public Page<MyActivityListVO> listByOrg(Long orgId, int page, int size, String keyword, Integer status, String categoryId) {
         Page<Activity> activityPage = new Page<>(page, size);
         LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Activity::getOrgId, orgId)
-               .orderByDesc(Activity::getCreateTime);
+        wrapper.eq(Activity::getOrgId, orgId);
+
+        // 关键词搜索
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.like(Activity::getTitle, keyword);
+        }
+
+        // 状态筛选
+        if (status != null) {
+            wrapper.eq(Activity::getStatus, status);
+        }
+
+        // 服务类别筛选
+        if (categoryId != null && !categoryId.isBlank()) {
+            wrapper.eq(Activity::getCategoryId, categoryId);
+        }
+
+        wrapper.orderByDesc(Activity::getCreateTime);
 
         Page<Activity> result = activityMapper.selectPage(activityPage, wrapper);
         return convertToVOPage(result);

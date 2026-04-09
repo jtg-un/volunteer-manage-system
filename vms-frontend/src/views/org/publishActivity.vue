@@ -75,7 +75,23 @@
         </el-form-item>
 
         <el-form-item label="服务对象" prop="targetAudience">
-          <el-input v-model="form.targetAudience" placeholder="请输入服务对象，如：老年人、儿童等" />
+          <el-select
+            v-model="form.targetAudience"
+            placeholder="请选择服务对象"
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+            style="width: 100%"
+            allow-create
+            filterable
+          >
+            <el-option
+              v-for="item in targetAudienceList"
+              :key="item.dictKey"
+              :label="item.dictValue"
+              :value="item.dictKey"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="活动时间" required>
@@ -174,6 +190,7 @@ import { useRegion } from '@/composables/useRegion'
 const formRef = ref(null)
 const submitting = ref(false)
 const categoryList = ref([])
+const targetAudienceList = ref([])
 
 const {
   provinceList,
@@ -193,7 +210,7 @@ const {
 const form = reactive({
   title: '',
   categoryId: '',
-  targetAudience: '',
+  targetAudience: [],
   startTime: '',
   endTime: '',
   description: '',
@@ -212,6 +229,7 @@ const rules = {
 onMounted(async () => {
   await Promise.all([
     loadCategories(),
+    loadTargetAudience(),
     loadProvinces()
   ])
 })
@@ -222,6 +240,15 @@ async function loadCategories() {
     categoryList.value = res
   } catch {
     ElMessage.error('加载服务类别失败')
+  }
+}
+
+async function loadTargetAudience() {
+  try {
+    const res = await getDict('target_audience')
+    targetAudienceList.value = res
+  } catch {
+    // 字典数据可能还没插入，静默处理
   }
 }
 
@@ -255,7 +282,7 @@ async function handleSubmit() {
       title: form.title,
       categoryId: form.categoryId,
       regionCode: regionCode.value,
-      targetAudience: form.targetAudience,
+      targetAudience: Array.isArray(form.targetAudience) ? form.targetAudience.join(',') : form.targetAudience,
       startTime: form.startTime,
       endTime: form.endTime,
       description: form.description,

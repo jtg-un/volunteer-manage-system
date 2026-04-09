@@ -98,6 +98,24 @@ const routes = [
         name: 'UserManage',
         component: () => import('@/views/admin/userManage.vue'),
         meta: { title: '用户管理', role: 2 }
+      },
+      {
+        path: 'admin/dict-manage',
+        name: 'DictManage',
+        component: () => import('@/views/admin/dictManage.vue'),
+        meta: { title: '字典管理', role: 2 }
+      },
+      {
+        path: 'admin/region-manage',
+        name: 'RegionManage',
+        component: () => import('@/views/admin/regionManage.vue'),
+        meta: { title: '区划管理', role: 2 }
+      },
+      {
+        path: 'admin/notice-manage',
+        name: 'NoticeManage',
+        component: () => import('@/views/admin/noticeManage.vue'),
+        meta: { title: '公告管理', role: 2 }
       }
     ]
   }

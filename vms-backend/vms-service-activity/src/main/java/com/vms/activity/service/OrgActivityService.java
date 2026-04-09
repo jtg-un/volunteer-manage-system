@@ -39,9 +39,12 @@ public interface OrgActivityService {
      * @param orgId 组织ID
      * @param page 页码
      * @param size 每页数量
+     * @param keyword 关键词（标题）
+     * @param status 状态筛选
+     * @param categoryId 服务类别筛选
      * @return 活动列表
      */
-    Page<MyActivityListVO> listByOrg(Long orgId, int page, int size);
+    Page<MyActivityListVO> listByOrg(Long orgId, int page, int size, String keyword, Integer status, String categoryId);
 
     /**
      * 更新活动状态

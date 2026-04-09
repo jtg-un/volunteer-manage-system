@@ -8,6 +8,10 @@ import lombok.Data;
 @Data
 public class DictVO {
 
+    private Integer dictId;
+
+    private String dictType;
+
     private String dictKey;
 
     private String dictValue;

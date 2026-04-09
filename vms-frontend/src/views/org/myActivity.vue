@@ -10,6 +10,42 @@
         </div>
       </template>
 
+      <!-- 搜索筛选 -->
+      <el-form :inline="true" style="margin-bottom: 20px;">
+        <el-form-item label="关键词">
+          <el-input
+            v-model="searchKeyword"
+            placeholder="搜索活动标题"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSearch"
+          />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="searchStatus" placeholder="全部" clearable style="width: 120px" @change="handleSearch">
+            <el-option label="待审核" :value="3" />
+            <el-option label="待启动" :value="0" />
+            <el-option label="运行中" :value="1" />
+            <el-option label="已结项" :value="2" />
+            <el-option label="已拒绝" :value="4" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="服务类别">
+          <el-select v-model="searchCategory" placeholder="全部" clearable style="width: 140px" @change="handleSearch">
+            <el-option
+              v-for="item in categoryList"
+              :key="item.dictKey"
+              :label="item.dictValue"
+              :value="item.dictKey"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column prop="projectCode" label="项目编号" width="150" />
         <el-table-column label="活动标题" min-width="200">
@@ -139,7 +175,23 @@
         </el-form-item>
 
         <el-form-item label="服务对象" prop="targetAudience">
-          <el-input v-model="editForm.targetAudience" placeholder="请输入服务对象" />
+          <el-select
+            v-model="editForm.targetAudience"
+            placeholder="请选择服务对象"
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+            style="width: 100%"
+            allow-create
+            filterable
+          >
+            <el-option
+              v-for="item in targetAudienceList"
+              :key="item.dictKey"
+              :label="item.dictValue"
+              :value="item.dictKey"
+            />
+          </el-select>
         </el-form-item>
 
         <el-form-item label="开始时间" prop="startTime">
@@ -237,6 +289,12 @@ const pagination = ref({
   total: 0
 })
 
+// 搜索筛选
+const searchKeyword = ref('')
+const searchStatus = ref(null)
+const searchCategory = ref('')
+const categoryList = ref([])
+
 const detailVisible = ref(false)
 const currentActivityId = ref(null)
 
@@ -244,7 +302,7 @@ const currentActivityId = ref(null)
 const editVisible = ref(false)
 const editLoading = ref(false)
 const editFormRef = ref(null)
-const categoryList = ref([])
+const targetAudienceList = ref([])
 const regionOptions = ref([])
 
 const editForm = reactive({
@@ -253,7 +311,7 @@ const editForm = reactive({
   categoryId: '',
   regionCodes: [],
   regionCode: '',
-  targetAudience: '',
+  targetAudience: [],
   startTime: '',
   endTime: '',
   description: '',
@@ -293,10 +351,15 @@ const regionProps = {
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await getMyActivities({
+    const params = {
       page: pagination.value.page,
       size: pagination.value.size
-    })
+    }
+    if (searchKeyword.value) params.keyword = searchKeyword.value
+    if (searchStatus.value !== null) params.status = searchStatus.value
+    if (searchCategory.value) params.categoryId = searchCategory.value
+
+    const res = await getMyActivities(params)
     tableData.value = res.records || []
     pagination.value.total = res.total || 0
   } catch (error) {
@@ -306,6 +369,19 @@ const fetchData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleSearch = () => {
+  pagination.value.page = 1
+  fetchData()
+}
+
+const handleReset = () => {
+  searchKeyword.value = ''
+  searchStatus.value = null
+  searchCategory.value = ''
+  pagination.value.page = 1
+  fetchData()
 }
 
 const handleDetail = (row) => {
@@ -350,6 +426,7 @@ const handleCancel = (row) => {
 const handleEdit = async (row) => {
   // 加载字典和地区
   await loadCategories()
+  await loadTargetAudience()
   await loadProvinces()
 
   // 填充表单
@@ -357,7 +434,8 @@ const handleEdit = async (row) => {
   editForm.title = row.title
   editForm.categoryId = row.categoryId
   editForm.regionCode = row.regionCode
-  editForm.targetAudience = row.targetAudience
+  // 将逗号分隔的字符串转为数组
+  editForm.targetAudience = row.targetAudience ? row.targetAudience.split(',') : []
   editForm.startTime = row.startTime
   editForm.endTime = row.endTime
   editForm.description = row.description
@@ -405,7 +483,7 @@ const handleUpdateSubmit = async () => {
       title: editForm.title,
       categoryId: editForm.categoryId,
       regionCode: editForm.regionCode,
-      targetAudience: editForm.targetAudience,
+      targetAudience: Array.isArray(editForm.targetAudience) ? editForm.targetAudience.join(',') : editForm.targetAudience,
       startTime: editForm.startTime,
       endTime: editForm.endTime,
       description: editForm.description,
@@ -431,6 +509,15 @@ async function loadCategories() {
     categoryList.value = res
   } catch {
     ElMessage.error('加载服务类别失败')
+  }
+}
+
+async function loadTargetAudience() {
+  try {
+    const res = await getDict('target_audience')
+    targetAudienceList.value = res
+  } catch {
+    // 静默处理
   }
 }
 
@@ -469,7 +556,8 @@ const formatDateTime = (time) => {
   return time.replace('T', ' ').substring(0, 16)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadCategories()
   fetchData()
 })
 </script>

@@ -59,6 +59,7 @@ vsm/
 │   │       │   ├── Organization.java
 │   │       │   ├── SysDict.java
 │   │       │   ├── SysUser.java
+│   │       │   ├── SysNotice.java
 │   │       │   ├── Activity.java
 │   │       │   ├── ActivityPosition.java
 │   │       │   ├── Registration.java
@@ -70,6 +71,7 @@ vsm/
 │   │           ├── OrganizationMapper.java
 │   │           ├── SysDictMapper.java
 │   │           ├── SysUserMapper.java
+│   │           ├── SysNoticeMapper.java
 │   │           ├── ActivityMapper.java
 │   │           ├── ActivityPositionMapper.java
 │   │           ├── RegistrationMapper.java
@@ -129,19 +131,24 @@ vsm/
 │           │   ├── SystemServiceApplication.java
 │           │   ├── controller/
 │           │   │   ├── DictController.java
-│           │   │   └── RegionController.java
+│           │   │   ├── RegionController.java
+│           │   │   └── NoticeController.java
 │           │   └── service/              # 业务逻辑层
 │           │       ├── DictService.java
 │           │       ├── RegionService.java
+│           │       ├── NoticeService.java
 │           │       └── impl/
 │           │           ├── DictServiceImpl.java
-│           │           └── RegionServiceImpl.java
+│           │           ├── RegionServiceImpl.java
+│           │           └── NoticeServiceImpl.java
 │           └── resources/application.yml
 │
 ├── vms-frontend/                         # 前端 Vue 3 项目
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js
+│   ├── public/
+│   │   └── 区划.txt                      # 全国行政区划编码数据
 │   └── src/
 │       ├── main.js                       # 入口文件
 │       ├── App.vue                       # 根组件
@@ -175,7 +182,10 @@ vsm/
 │           ├── admin/
 │           │   ├── orgAudit.vue          # 管理员-组织审核
 │           │   ├── activityAudit.vue     # 管理员-活动审核
-│           │   └── userManage.vue        # 管理员-用户管理
+│           │   ├── userManage.vue        # 管理员-用户管理
+│           │   ├── dictManage.vue        # 管理员-字典管理
+│           │   ├── regionManage.vue      # 管理员-区划管理
+│           │   └── noticeManage.vue      # 管理员-公告管理
 │           ├── org/
 │           │   ├── profile.vue           # 组织-个人中心
 │           │   ├── publishActivity.vue   # 组织-发布活动
@@ -210,7 +220,7 @@ vms-repository (数据访问层)
 |------|------|------|
 | vms-service-user | 8081 | 登录、注册、组织审核 |
 | vms-service-activity | 8083 | 活动发布、岗位管理、活动检索、活动审核、状态管理 |
-| vms-service-system | 8087 | 字典管理、行政区划 |
+| vms-service-system | 8087 | 字典管理、行政区划、公告管理 |
 
 ### 前端 Proxy 配置
 ```javascript
@@ -917,9 +927,165 @@ file:
 
 ---
 
+## 垂直切片八：系统管理服务完善 [已完成]
+
+### 后端实现
+
+#### 字典管理 CRUD
+- [x] DictDTO 创建：字典新增/更新 DTO
+- [x] DictVO 更新：添加 dictId、dictType 字段
+- [x] DictService 扩展：
+  - 分页获取所有字典（支持类型筛选、关键词搜索）
+  - 新增字典（检查重复键）
+  - 更新字典
+  - 删除字典
+  - 获取所有字典类型列表
+- [x] DictController 新增接口：
+  - `GET /admin/dict/page` - 分页查询字典
+  - `POST /admin/dict` - 新增字典
+  - `PUT /admin/dict` - 更新字典
+  - `DELETE /admin/dict/{dictId}` - 删除字典
+  - `GET /admin/dict/types` - 获取字典类型列表
+
+#### 行政区划管理 CRUD
+- [x] RegionDTO 创建：区划新增/更新 DTO
+- [x] RegionService 扩展：
+  - 分页获取所有区划（支持层级筛选、关键词搜索）
+  - 新增区划
+  - 更新区划
+  - 删除区划（检查是否有子级）
+  - 获取区划详情
+- [x] RegionController 新增接口：
+  - `GET /admin/region/page` - 分页查询区划
+  - `POST /admin/region` - 新增区划
+  - `PUT /admin/region` - 更新区划
+  - `DELETE /admin/region/{regionCode}` - 删除区划
+  - `GET /admin/region/{regionCode}` - 获取区划详情
+
+### 后端 API 接口
+
+#### 字典管理 (8087)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/dict/admin/page | 分页查询字典 |
+| POST | /api/dict/admin | 新增字典 |
+| PUT | /api/dict/admin | 更新字典 |
+| DELETE | /api/dict/admin/{dictId} | 删除字典 |
+| GET | /api/dict/admin/types | 获取字典类型列表 |
+
+#### 行政区划管理 (8087)
+| 方法 | 路径 | 描述 |
+|------|------|------|
+| GET | /api/system/admin/region/page | 分页查询区划 |
+| POST | /api/system/admin/region | 新增区划 |
+| PUT | /api/system/admin/region | 更新区划 |
+| DELETE | /api/system/admin/region/{regionCode} | 删除区划 |
+| GET | /api/system/admin/region/{regionCode} | 获取区划详情 |
+
+---
+
+## 垂直切片九：组织注册完善与服务对象字典应用 [已完成]
+
+### 组织注册字段完善
+
+#### 后端实现
+- [x] 组织注册自动生成联络编号
+  - 格式：ORG + 年月日 + 3位序号
+  - 示例：ORG20260407001
+- [x] OrgRegisterDTO 已有 unitType、regionCode、foundDate 字段
+- [x] Organization 实体已有完整字段定义
+
+#### 前端实现
+- [x] 注册页面添加单位类型下拉选择
+- [x] 注册页面添加所属地区三级级联选择
+- [x] 注册页面添加成立日期选择器
+- [x] 提交时携带 regionCode 参数
+
+### 组织审核列表完善
+
+#### 后端实现
+- [x] OrgListVO 添加 unitType、unitTypeName、regionCode、regionName 字段
+- [x] OrganizationService 支持按单位类型、所属地区筛选
+- [x] OrganizationController 添加筛选参数
+
+#### 前端实现
+- [x] 组织审核列表添加单位类型列、所属地区列
+- [x] 筛选条件添加单位类型下拉、地区级联选择
+
+### 组织详情弹窗完善
+- [x] 显示联络编号（自动生成）
+- [x] 显示单位类型、所属地区、成立日期
+
+### 服务对象字典应用
+
+#### 数据库新增字典
+```sql
+INSERT INTO `sys_dict` (`dict_type`, `dict_key`, `dict_value`) VALUES
+('target_audience', 'elderly', '老年人'),
+('target_audience', 'children', '儿童'),
+('target_audience', 'disabled', '残疾人'),
+('target_audience', 'community', '社区居民'),
+('target_audience', 'students', '学生'),
+('target_audience', 'public', '社会公众'),
+('target_audience', 'low_income', '低收入群体'),
+('target_audience', 'left_behind', '留守儿童');
+```
+
+#### 前端实现
+- [x] 发布活动页面：服务对象改为多选下拉框
+- [x] 编辑活动页面：服务对象改为多选下拉框
+- [x] 支持自定义输入（allow-create）
+- [x] 数据存储为逗号分隔字符串
+
+### 业务规则
+1. **服务对象选择**:
+   - 支持多选（一个活动可服务多类人群）
+   - 支持自定义输入
+   - 空间不足时折叠显示（collapse-tags）
+
+---
+
+## 垂直切片十：区划管理优化与编码查询功能 [已完成]
+
+### 功能概述
+在区划管理的新增弹窗中集成编码查询功能，帮助管理员快速查找正确的区划编码。
+
+### 前端实现
+- [x] `区划.txt` 复制到 `vms-frontend/public/` 目录
+- [x] 新增区划弹窗添加"查询编码"按钮（编码规则说明右上角）
+- [x] 区划编码查询弹窗功能：
+  - 从 `区划.txt` 解析全部区划数据
+  - 关键词搜索区划名称
+  - 层级筛选（省/市/区县）
+  - 分页显示（每页20条）
+  - 复制编码功能
+- [x] 自动推断层级逻辑优化（直辖市特殊处理）
+  - 直辖市编码：11北京、12天津、31上海、50重庆
+  - 直辖市无市级，子级直接为区县级（6位编码）
+
+### 区划编码规则
+| 层级 | 编码格式 | 示例 |
+|------|----------|------|
+| 省级 | 2位数字 | 11=北京、32=江苏 |
+| 市级 | 4位数字 | 3201=南京 |
+| 区县级 | 6位数字 | 320102=玄武区 |
+| 直辖市下区 | 6位数字 | 110101=东城区 |
+
+### 新增文件
+| 文件 | 说明 |
+|------|------|
+| `vms-frontend/public/区划.txt` | 全国行政区划编码数据 |
+
+### 修改文件
+| 文件 | 变更说明 |
+|------|----------|
+| `vms-frontend/src/views/admin/regionManage.vue` | 集成编码查询弹窗，优化层级推断逻辑 |
+
+---
+
 ## 待开发功能
 
-暂无待开发功能。
+- [ ] 活动推荐算法（基于志愿者历史参与记录）
 
 ---
 
@@ -934,6 +1100,7 @@ file:
 - `evaluation`: 评价表
 - `sys_dict`: 系统字典表
 - `sys_region`: 行政区划字典
+- `sys_notice`: 系统公告表
 
 ---
 
@@ -969,4 +1136,4 @@ npm run dev
 
 ---
 
-*最后更新: 2026-03-17*
+*最后更新: 2026-04-09*

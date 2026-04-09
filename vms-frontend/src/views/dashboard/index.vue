@@ -56,6 +56,9 @@
           <el-menu-item index="/admin/org-audit">组织审核</el-menu-item>
           <el-menu-item index="/admin/activity-audit">活动审核</el-menu-item>
           <el-menu-item index="/admin/user-manage">用户管理</el-menu-item>
+          <el-menu-item index="/admin/dict-manage">字典管理</el-menu-item>
+          <el-menu-item index="/admin/region-manage">区划管理</el-menu-item>
+          <el-menu-item index="/admin/notice-manage">公告管理</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>

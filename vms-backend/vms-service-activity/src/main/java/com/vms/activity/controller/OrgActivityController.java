@@ -85,12 +85,15 @@ public class OrgActivityController {
     public Result<Page<MyActivityListVO>> myList(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) Integer status,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
             @RequestHeader("Authorization") String authorization) {
 
         Long userId = userContext.requireOrgAndGetUserId(authorization);
         Organization org = getOrgByUserId(userId);
 
-        Page<MyActivityListVO> result = orgActivityService.listByOrg(org.getOrgId(), page, size);
+        Page<MyActivityListVO> result = orgActivityService.listByOrg(org.getOrgId(), page, size, keyword, status, categoryId);
         return Result.success(result);
     }
 
