@@ -3,6 +3,24 @@ import { useUserStore } from '@/stores/user'
 
 const routes = [
   {
+    path: '/welcome',
+    name: 'Welcome',
+    component: () => import('@/views/welcome.vue'),
+    meta: { title: '欢迎', guest: true }
+  },
+  {
+    path: '/activity/list',
+    name: 'ActivityList',
+    component: () => import('@/views/activity/list.vue'),
+    meta: { title: '活动列表', guest: true }
+  },
+  {
+    path: '/activity/detail/:id',
+    name: 'ActivityDetail',
+    component: () => import('@/views/activity/detail.vue'),
+    meta: { title: '活动详情', guest: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login/index.vue'),
@@ -25,12 +43,6 @@ const routes = [
         name: 'Home',
         component: () => import('@/views/dashboard/home.vue'),
         meta: { title: '首页' }
-      },
-      {
-        path: 'activity/list',
-        name: 'ActivityList',
-        component: () => import('@/views/activity/list.vue'),
-        meta: { title: '活动列表' }
       },
       {
         path: 'user/profile',
@@ -127,17 +139,49 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, _from, next) => {
-  document.title = `${to.meta.title || 'VMS'} - 志愿者管理系统`
+router.beforeEach(async (to, _from, next) => {
+  document.title = `${to.meta.title || 'VMS'} - 志愿服务管理系统`
 
   const userStore = useUserStore()
 
-  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
+  // 有 token 但 userInfo 为空时，先获取用户信息
+  if (userStore.isLoggedIn && !userStore.userInfo) {
+    try {
+      await userStore.fetchUserInfo()
+    } catch (error) {
+      // 获取用户信息失败，清除 token 并跳转登录页
+      userStore.logout()
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+      return
+    }
+  }
+
+  // 游客可访问的页面
+  if (to.meta.guest) {
+    next()
     return
   }
 
+  // 欢迎页任何人可访问
+  if (to.name === 'Welcome') {
+    next()
+    return
+  }
+
+  // 未登录用户访问需要认证的页面，跳转欢迎页
+  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+    next({ name: 'Welcome' })
+    return
+  }
+
+  // 已登录用户访问登录/注册页，跳转首页
   if ((to.name === 'Login' || to.name === 'Register') && userStore.isLoggedIn) {
+    next({ name: 'Home' })
+    return
+  }
+
+  // 已登录用户访问欢迎页，跳转首页
+  if (to.name === 'Welcome' && userStore.isLoggedIn) {
     next({ name: 'Home' })
     return
   }

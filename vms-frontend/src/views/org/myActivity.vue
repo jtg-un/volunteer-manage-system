@@ -79,7 +79,7 @@
             </el-badge>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="handleDetail(row)">
               详情
@@ -91,6 +91,14 @@
               @click="handleEdit(row)"
             >
               编辑
+            </el-button>
+            <el-button
+              v-if="row.status === 0 || row.status === 1"
+              type="info"
+              size="small"
+              @click="handleImageManage(row)"
+            >
+              图片
             </el-button>
             <el-button
               v-if="row.status === 0"
@@ -270,6 +278,29 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 图片管理弹窗 -->
+    <el-dialog v-model="imageVisible" title="活动图片管理" width="600px" destroy-on-close>
+      <div class="image-dialog-content">
+        <div class="image-tip">
+          <el-alert
+            title="上传活动图片，设置封面后将在活动列表展示"
+            type="info"
+            :closable="false"
+          />
+        </div>
+        <ImageUpload
+          ref="imageUploadRef"
+          biz-type="activity"
+          :biz-id="currentImageActivityId"
+          :max-count="10"
+          :initial-images="currentActivityImages"
+        />
+      </div>
+      <template #footer>
+        <el-button @click="imageVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -279,7 +310,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { getMyActivities, updateActivityStatus, updateActivity, cancelActivity } from '@/api/activity'
 import { getDict, getRegionList } from '@/api/system'
+import { getActivityImages } from '@/api/image'
 import OrgActivityDetailDialog from '@/components/org/OrgActivityDetailDialog.vue'
+import ImageUpload from '@/components/common/ImageUpload.vue'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -297,6 +330,12 @@ const categoryList = ref([])
 
 const detailVisible = ref(false)
 const currentActivityId = ref(null)
+
+// 图片管理
+const imageVisible = ref(false)
+const currentImageActivityId = ref(null)
+const currentActivityImages = ref([])
+const imageUploadRef = ref(null)
 
 // 编辑相关
 const editVisible = ref(false)
@@ -421,6 +460,17 @@ const handleCancel = (row) => {
       console.error(error)
     }
   }).catch(() => {})
+}
+
+const handleImageManage = async (row) => {
+  currentImageActivityId.value = row.activityId
+  try {
+    const res = await getActivityImages(row.activityId)
+    currentActivityImages.value = res || []
+  } catch {
+    currentActivityImages.value = []
+  }
+  imageVisible.value = true
 }
 
 const handleEdit = async (row) => {
@@ -572,5 +622,13 @@ onMounted(async () => {
   margin-bottom: 10px;
   background-color: #f9f9f9;
   border-radius: 4px;
+}
+
+.image-dialog-content {
+  padding: 10px 0;
+}
+
+.image-tip {
+  margin-bottom: 16px;
 }
 </style>

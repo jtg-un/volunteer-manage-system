@@ -9,7 +9,7 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>VMS Backend Parent</name>
-    <description>志愿者管理系统后端 - Maven 父工程（分布式架构）</description>
+    <description>志愿服务管理系统后端 - Maven 父工程（分布式架构）</description>
 
     <modules>
         <!-- 基础模块（共享依赖） -->

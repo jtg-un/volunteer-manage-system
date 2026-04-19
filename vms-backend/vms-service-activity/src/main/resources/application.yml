@@ -28,6 +28,12 @@ jwt:
   secret: vms-secret-key-must-be-at-least-256-bits-long-for-security
   expiration: 86400000
 
+file:
+  upload:
+    path: ${user.dir}/vms-upload/images/
+  access:
+    url-prefix: /uploads/images/
+
 logging:
   level:
     com.vms: debug

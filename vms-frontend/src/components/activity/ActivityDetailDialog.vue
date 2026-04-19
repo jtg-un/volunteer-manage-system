@@ -5,7 +5,12 @@
     width="700px"
     destroy-on-close
     @close="handleClose"
+    @open="loadImages"
   >
+    <!-- 活动图片展示 -->
+    <ImageGallery :images="activityImages" v-if="activityImages.length" />
+    <div class="image-divider" v-if="activityImages.length"></div>
+
     <el-descriptions :column="2" border>
       <el-descriptions-item label="项目编号">
         {{ data.projectCode }}
@@ -80,8 +85,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { getStatusName, getStatusType, formatDateTime } from '@/utils/activity'
+import ImageGallery from '@/components/common/ImageGallery.vue'
+import { getActivityImages } from '@/api/image'
 
 const props = defineProps({
   modelValue: {
@@ -109,6 +116,22 @@ const visible = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
+const activityImages = ref([])
+
+// 加载活动图片
+async function loadImages() {
+  // 确保activityId存在且是有效数字
+  if (props.data.activityId && typeof props.data.activityId === 'number') {
+    try {
+      const res = await getActivityImages(props.data.activityId)
+      activityImages.value = res || []
+    } catch (e) {
+      console.error('加载图片失败:', e)
+      activityImages.value = []
+    }
+  }
+}
+
 function handleClose() {
   emit('update:modelValue', false)
 }
@@ -123,6 +146,10 @@ function handleRegister(position) {
 </script>
 
 <style scoped>
+.image-divider {
+  margin-bottom: 16px;
+}
+
 .text-danger {
   color: #f56c6c;
 }

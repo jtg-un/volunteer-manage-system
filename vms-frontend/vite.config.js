@@ -27,6 +27,15 @@ export default defineConfig({
         target: 'http://localhost:8083',
         changeOrigin: true
       },
+      // 组织风采图片 (8083)
+      '/api/org/images': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
+      '/api/org-img': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
       '/api/org': {
         target: 'http://localhost:8081',
         changeOrigin: true
@@ -43,13 +52,28 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true
       },
-      // 静态资源：头像访问
+      // 静态资源：图片访问（8083活动服务）- 必须在头像前
+      '/uploads/images': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
+      // 静态资源：头像访问（8081用户服务）
       '/uploads': {
         target: 'http://localhost:8081',
         changeOrigin: true
       },
+      // 首页统计接口 (8083)
+      '/api/home': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
       // 活动服务 (8083): 活动管理
       '/api/activity': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
+      // 活动图片接口 (8083)
+      '/api/activity-img': {
         target: 'http://localhost:8083',
         changeOrigin: true
       },

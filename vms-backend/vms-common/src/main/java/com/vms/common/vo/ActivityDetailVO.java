@@ -35,6 +35,9 @@ public class ActivityDetailVO {
     /** 服务对象 */
     private String targetAudience;
 
+    /** 服务对象名称 */
+    private String targetAudienceName;
+
     /** 开始时间 */
     private LocalDateTime startTime;
 
@@ -58,6 +61,9 @@ public class ActivityDetailVO {
 
     /** 发起组织名称 */
     private String orgName;
+
+    /** 封面图片URL */
+    private String coverImageUrl;
 
     /** 岗位列表 */
     private List<PositionVO> positions;

@@ -127,6 +127,57 @@
           />
         </el-form-item>
 
+        <!-- 活动图片 -->
+        <el-divider content-position="left">活动图片</el-divider>
+
+        <el-form-item label="活动封面">
+          <div class="image-preview-area">
+            <!-- 已选择的图片预览 -->
+            <div class="preview-list" v-if="previewImages.length">
+              <div
+                v-for="(img, index) in previewImages"
+                :key="index"
+                class="preview-item"
+              >
+                <el-image :src="img.url" fit="cover" />
+                <div class="preview-actions">
+                  <el-icon
+                    @click="setCoverIndex(index)"
+                    :class="{ 'is-cover': coverIndex === index }"
+                    class="action-icon"
+                  >
+                    <Star />
+                  </el-icon>
+                  <el-icon @click="removePreviewImage(index)" class="action-icon delete">
+                    <Delete />
+                  </el-icon>
+                </div>
+                <el-tag v-if="coverIndex === index" type="success" size="small" class="cover-tag">
+                  封面
+                </el-tag>
+              </div>
+            </div>
+
+            <!-- 上传按钮 -->
+            <el-upload
+              v-if="previewImages.length < maxImages"
+              :auto-upload="false"
+              :show-file-list="false"
+              :on-change="handleFileChange"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              class="upload-btn"
+              drag
+            >
+              <el-icon class="upload-icon"><Plus /></el-icon>
+              <div class="upload-text">点击或拖拽上传</div>
+              <div class="upload-tip">最多 {{ maxImages }} 张，单张不超过 5MB</div>
+            </el-upload>
+          </div>
+          <div class="image-count" v-if="previewImages.length">
+            已选择 {{ previewImages.length }}/{{ maxImages }} 张
+          </div>
+        </el-form-item>
+
         <!-- 岗位设置 -->
         <el-divider content-position="left">岗位设置</el-divider>
 
@@ -182,8 +233,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { Plus, Delete, Star } from '@element-plus/icons-vue'
 import { publishActivity } from '@/api/activity'
+import { uploadActivityImage } from '@/api/image'
 import { getDict } from '@/api/system'
 import { useRegion } from '@/composables/useRegion'
 
@@ -191,6 +243,11 @@ const formRef = ref(null)
 const submitting = ref(false)
 const categoryList = ref([])
 const targetAudienceList = ref([])
+
+// 图片相关
+const previewImages = ref([])  // 预览图片列表 { url, file }
+const coverIndex = ref(0)      // 封面图片索引
+const maxImages = 10
 
 const {
   provinceList,
@@ -289,7 +346,14 @@ async function handleSubmit() {
       positions: form.positions
     }
 
-    await publishActivity(data)
+    // 发布活动，获取返回的activityId
+    const activityId = await publishActivity(data)
+
+    // 如果有图片，上传图片
+    if (previewImages.value.length > 0 && activityId) {
+      await uploadImages(activityId)
+    }
+
     ElMessage.success('活动发布成功')
     handleReset()
   } catch (error) {
@@ -301,10 +365,67 @@ async function handleSubmit() {
   }
 }
 
+// 上传图片
+async function uploadImages(activityId) {
+  for (let i = 0; i < previewImages.value.length; i++) {
+    const img = previewImages.value[i]
+    const isCover = i === coverIndex.value ? 1 : 0
+    try {
+      await uploadActivityImage(img.file, activityId, isCover)
+    } catch (e) {
+      console.error('图片上传失败:', e)
+    }
+  }
+}
+
+// 文件选择变化
+function handleFileChange(file) {
+  // 验证文件类型和大小
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.raw.type)) {
+    ElMessage.error('只支持 JPG、PNG、GIF、WEBP 格式')
+    return
+  }
+  if (file.raw.size > 5 * 1024 * 1024) {
+    ElMessage.error('图片大小不能超过 5MB')
+    return
+  }
+  if (previewImages.value.length >= maxImages) {
+    ElMessage.error(`最多只能上传 ${maxImages} 张图片`)
+    return
+  }
+
+  // 添加到预览列表
+  previewImages.value.push({
+    url: URL.createObjectURL(file.raw),
+    file: file.raw
+  })
+}
+
+// 设置封面
+function setCoverIndex(index) {
+  coverIndex.value = index
+}
+
+// 移除预览图片
+function removePreviewImage(index) {
+  // 释放URL对象
+  URL.revokeObjectURL(previewImages.value[index].url)
+  previewImages.value.splice(index, 1)
+  // 调整封面索引
+  if (coverIndex.value >= previewImages.value.length) {
+    coverIndex.value = Math.max(0, previewImages.value.length - 1)
+  }
+}
+
 function handleReset() {
   formRef.value?.resetFields()
   form.positions = [{ posName: '', planCount: 1 }]
   resetRegion()
+  // 清空图片预览
+  previewImages.value.forEach(img => URL.revokeObjectURL(img.url))
+  previewImages.value = []
+  coverIndex.value = 0
 }
 </script>
 
@@ -318,5 +439,101 @@ function handleReset() {
   margin-bottom: 10px;
   background-color: #f9f9f9;
   border-radius: 4px;
+}
+
+/* 图片预览区域 */
+.image-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.preview-item {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #dcdfe6;
+}
+
+.preview-item:hover .preview-actions {
+  opacity: 1;
+}
+
+.preview-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex;
+  gap: 8px;
+}
+
+.action-icon {
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.action-icon.is-cover {
+  color: #ffd700;
+}
+
+.action-icon.delete:hover {
+  color: #f56c6c;
+}
+
+.cover-tag {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+}
+
+.upload-btn {
+  width: 120px;
+  height: 120px;
+}
+
+.upload-btn .el-upload-dragger {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #909399;
+}
+
+.upload-text {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 4px;
+}
+
+.upload-tip {
+  font-size: 10px;
+  color: #909399;
+  margin-top: 2px;
+}
+
+.image-count {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #909399;
 }
 </style>

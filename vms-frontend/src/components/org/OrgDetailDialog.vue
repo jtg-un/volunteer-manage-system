@@ -42,6 +42,10 @@
           {{ org.intro || '暂无简介' }}
         </el-descriptions-item>
       </el-descriptions>
+
+      <!-- 组织风采 -->
+      <el-divider content-position="left">组织风采</el-divider>
+      <ImageGallery :images="galleryImages" />
     </div>
 
     <template #footer>
@@ -53,6 +57,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { getPublicOrgDetail } from '@/api/org'
+import { getOrgGallery } from '@/api/image'
+import ImageGallery from '@/components/common/ImageGallery.vue'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -68,6 +74,7 @@ const visible = computed({
 
 const loading = ref(false)
 const org = ref(null)
+const galleryImages = ref([])
 
 // 单位类型映射（与字典表 unit_type 对应）
 const unitTypeMap = {
@@ -84,6 +91,9 @@ watch(visible, async (val) => {
     loading.value = true
     try {
       org.value = await getPublicOrgDetail(props.orgId)
+      // 加载组织风采
+      const images = await getOrgGallery(props.orgId)
+      galleryImages.value = images || []
     } catch (error) {
       console.error('加载组织详情失败:', error)
     } finally {

@@ -1083,6 +1083,155 @@ INSERT INTO `sys_dict` (`dict_type`, `dict_key`, `dict_value`) VALUES
 
 ---
 
+## 垂直切片十一：图片上传功能 [已完成]
+
+### 功能概述
+为活动和组织添加图片展示功能：
+- **活动图片**：多张图片用于详情页展示，支持设置封面、删除、排序
+- **组织风采**：最多8张图片展示历史活动照片，支持删除、排序
+
+### 数据库设计
+
+#### 扩展 sys_file 表
+```sql
+ALTER TABLE `sys_file`
+  ADD COLUMN `biz_type` varchar(20) NOT NULL DEFAULT '' COMMENT '业务类型: activity_image/org_gallery',
+  ADD COLUMN `biz_id` bigint NOT NULL DEFAULT 0 COMMENT '业务ID: activity_id/org_id',
+  ADD COLUMN `sort_order` int NOT NULL DEFAULT 0 COMMENT '排序序号（越小越靠前）',
+  ADD COLUMN `is_cover` tinyint NOT NULL DEFAULT 0 COMMENT '是否封面: 0否 1是',
+  ADD COLUMN `original_name` varchar(100) DEFAULT NULL COMMENT '原始文件名',
+  ADD COLUMN `file_size` bigint DEFAULT NULL COMMENT '文件大小(bytes)';
+
+CREATE INDEX `idx_biz` ON `sys_file` (`biz_type`, `biz_id`);
+```
+
+### 后端实现
+
+#### 新增文件
+| 文件 | 说明 |
+|------|------|
+| `vms-repository/entity/SysFile.java` | 文件实体类（含 @TableField 注解） |
+| `vms-repository/mapper/SysFileMapper.java` | 文件 Mapper |
+| `vms-common/dto/ImageSortDTO.java` | 图片排序 DTO |
+| `vms-common/vo/ImageVO.java` | 图片 VO |
+| `vms-common/vo/HomeStatsVO.java` | 首页统计 VO |
+| `vms-service-activity/config/WebMvcConfig.java` | 静态资源映射配置 |
+| `vms-service-activity/service/ImageService.java` | 图片服务接口 |
+| `vms-service-activity/service/impl/ImageServiceImpl.java` | 图片服务实现 |
+| `vms-service-activity/controller/ActivityImageController.java` | 活动图片控制器 |
+| `vms-service-activity/controller/OrgImageController.java` | 组织风采控制器 |
+| `vms-service-activity/controller/OrgGalleryController.java` | 组织风采（带认证）控制器 |
+| `vms-service-activity/controller/HomeController.java` | 首页统计控制器 |
+
+#### API 接口
+| 方法 | 路径 | 端口 | 描述 |
+|------|------|------|------|
+| POST | /api/activity-img/upload | 8083 | 上传活动图片 |
+| GET | /api/activity-img/{activityId} | 8083 | 获取活动图片列表 |
+| DELETE | /api/activity-img/{fileId} | 8083 | 删除活动图片 |
+| PUT | /api/activity-img/cover/{fileId} | 8083 | 设置封面 |
+| PUT | /api/activity-img/sort | 8083 | 排序图片 |
+| POST | /api/org-img/upload | 8083 | 上传组织风采 |
+| GET | /api/org-img/{orgId} | 8083 | 获取组织风采 |
+| DELETE | /api/org-img/{fileId} | 8083 | 删除组织风采 |
+| PUT | /api/org-img/sort | 8083 | 排序组织风采 |
+| GET | /api/org/images/my | 8083 | 获取当前组织风采 |
+| GET | /api/home/stats | 8083 | 首页统计数据 |
+| GET | /api/home/gallery | 8083 | 活动风采图片 |
+
+### 前端实现
+
+#### 新增文件
+| 文件 | 说明 |
+|------|------|
+| `src/api/image.js` | 图片 API 封装 |
+| `src/api/home.js` | 首页 API 封装 |
+| `src/components/common/ImageUpload.vue` | 图片上传组件（支持拖拽排序、设置封面） |
+| `src/components/common/ImageGallery.vue` | 图片轮播展示组件 |
+
+#### 修改文件
+| 文件 | 变更说明 |
+|------|----------|
+| `src/views/org/publishActivity.vue` | 发布活动时支持上传图片 |
+| `src/views/org/profile.vue` | 添加组织风采上传区域 |
+| `src/views/org/myActivity.vue` | 添加活动图片管理入口 |
+| `src/components/activity/ActivityDetailDialog.vue` | 添加图片展示 |
+| `src/views/dashboard/home.vue` | 首页展示统计数据和活动风采 |
+| `vite.config.js` | 添加图片相关代理配置 |
+
+#### Vite 代理配置
+```javascript
+proxy: {
+  '/api/activity-img': { target: 'http://localhost:8083' },
+  '/api/org-img': { target: 'http://localhost:8083' },
+  '/api/org/images': { target: 'http://localhost:8083' },
+  '/api/home': { target: 'http://localhost:8083' },
+  '/uploads/images': { target: 'http://localhost:8083' }
+}
+```
+
+---
+
+## 垂直切片十二：游客欢迎页面与活动详情页 [已完成]
+
+### 功能概述
+为游客（未登录用户）提供精美的欢迎页面和活动浏览体验。
+
+### 后端实现
+
+#### VO 扩展
+- [x] `ActivityDetailVO` 添加 `coverImageUrl` 和 `targetAudienceName` 字段
+- [x] `ActivityListVO` 添加 `coverImageUrl` 和 `targetAudienceName` 字段
+- [x] `ActivitySupport` 添加 `getCoverImageUrl` 和 `getTargetAudienceName` 方法
+
+### 前端实现
+
+#### 新增文件
+| 文件 | 说明 |
+|------|------|
+| `src/layouts/GuestLayout.vue` | 游客布局组件（顶部导航栏、登录/注册按钮） |
+| `src/views/welcome.vue` | 游客欢迎页（统计数据、功能介绍、活动风采、参与流程） |
+| `src/views/activity/detail.vue` | 活动详情页（封面图、活动信息、岗位信息、报名功能） |
+| `src/views/activity/list.vue` | 重构为图片卡片布局 |
+
+#### 页面功能
+1. **欢迎页 (`/welcome`)**:
+   - Hero Banner（渐变背景、数字动画统计）
+   - 功能介绍卡片
+   - 平台数据统计
+   - 活动风采展示
+   - 热门活动卡片
+   - 参与流程引导
+   - 底部行动召唤
+
+2. **活动列表页 (`/activity/list`)**:
+   - 图片卡片网格布局
+   - 筛选工具栏
+   - 点击跳转详情页
+
+3. **活动详情页 (`/activity/detail/:id`)**:
+   - 大尺寸封面图
+   - 活动基本信息
+   - 岗位信息卡片
+   - 报名功能（登录后可用）
+
+#### 路由配置
+| 路径 | 权限 | 描述 |
+|------|------|------|
+| `/welcome` | 游客可访问 | 欢迎页 |
+| `/activity/list` | 游客可访问 | 活动列表 |
+| `/activity/detail/:id` | 游客可访问 | 活动详情 |
+| `/login` | 无 | 登录页 |
+| `/register` | 无 | 注册页 |
+
+#### 路由守卫逻辑
+- 游客可访问 `/welcome`、`/activity/list`、`/activity/detail/:id`
+- 未登录访问需认证页面 → 跳转 `/welcome`
+- 已登录访问 `/welcome` → 跳转 Dashboard 首页
+- 已登录访问 `/login`、`/register` → 跳转 Dashboard 首页
+
+---
+
 ## 待开发功能
 
 - [ ] 活动推荐算法（基于志愿者历史参与记录）
@@ -1101,6 +1250,7 @@ INSERT INTO `sys_dict` (`dict_type`, `dict_key`, `dict_value`) VALUES
 - `sys_dict`: 系统字典表
 - `sys_region`: 行政区划字典
 - `sys_notice`: 系统公告表
+- `sys_file`: 文件表（活动图片、组织风采）
 
 ---
 
@@ -1136,4 +1286,4 @@ npm run dev
 
 ---
 
-*最后更新: 2026-04-09*
+*最后更新: 2026-04-19*

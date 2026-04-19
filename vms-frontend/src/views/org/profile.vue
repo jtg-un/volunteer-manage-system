@@ -55,6 +55,21 @@
         <el-form-item label="简介">
           <el-input v-model="form.intro" type="textarea" :rows="3" placeholder="请输入组织简介" />
         </el-form-item>
+
+        <!-- 组织风采图片 -->
+        <el-divider content-position="left">组织风采</el-divider>
+        <el-form-item label="活动照片">
+          <ImageUpload
+            ref="galleryRef"
+            biz-type="org"
+            :biz-id="orgInfo.orgId"
+            :max-count="8"
+            :initial-images="galleryImages"
+            @change="handleGalleryChange"
+          />
+          <div class="gallery-tip">展示组织过往活动的精彩瞬间，最多8张图片</div>
+        </el-form-item>
+
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="handleSave">保存修改</el-button>
         </el-form-item>
@@ -78,11 +93,15 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getMyOrg, updateOrg, getDict } from '@/api/org'
+import { getMyOrgGallery } from '@/api/image'
+import ImageUpload from '@/components/common/ImageUpload.vue'
 
 const loading = ref(false)
 const orgInfo = ref(null)
 const formRef = ref(null)
+const galleryRef = ref(null)
 const unitTypeList = ref([])
+const galleryImages = ref([])
 
 const form = reactive({
   orgName: '',
@@ -106,7 +125,23 @@ const rules = {
 onMounted(async () => {
   await fetchOrgInfo()
   await fetchUnitType()
+  await fetchGallery()
 })
+
+async function fetchGallery() {
+  if (orgInfo.value?.auditStatus === 1) {
+    try {
+      const data = await getMyOrgGallery()
+      galleryImages.value = data || []
+    } catch {
+      galleryImages.value = []
+    }
+  }
+}
+
+function handleGalleryChange(images) {
+  galleryImages.value = images
+}
 
 async function fetchOrgInfo() {
   const data = await getMyOrg()
@@ -174,5 +209,11 @@ async function handleSave() {
 
 .org-form {
   max-width: 800px;
+}
+
+.gallery-tip {
+  color: #909399;
+  font-size: 12px;
+  margin-top: 8px;
 }
 </style>

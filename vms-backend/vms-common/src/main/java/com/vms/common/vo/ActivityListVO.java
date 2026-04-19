@@ -35,6 +35,9 @@ public class ActivityListVO {
     /** 服务对象 */
     private String targetAudience;
 
+    /** 服务对象名称 */
+    private String targetAudienceName;
+
     /** 开始时间 */
     private LocalDateTime startTime;
 
@@ -55,6 +58,9 @@ public class ActivityListVO {
 
     /** 发起组织名称 */
     private String orgName;
+
+    /** 封面图片URL */
+    private String coverImageUrl;
 
     /** 总计划人数（所有岗位之和） */
     private Integer totalPlanCount;

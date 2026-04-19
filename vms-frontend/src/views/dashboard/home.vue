@@ -1,691 +1,782 @@
 <template>
-  <div class="home-page">
-    <!-- 欢迎区域 -->
-    <div class="welcome-section">
-      <div class="welcome-left">
-        <el-avatar :size="64" :src="userStore.userInfo?.avatarUrl" icon="UserFilled" />
-        <div class="welcome-text">
-          <h2>{{ greeting }}，{{ userStore.userInfo?.realName || userStore.userInfo?.username }}</h2>
-          <p>{{ todayStr }} | {{ roleText }}</p>
+  <div class="welcome-page">
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div class="hero-content">
+        <h1 class="hero-title">志愿服务管理系统</h1>
+        <p class="hero-subtitle">汇聚爱心力量，共建美好社会</p>
+        <div class="hero-actions">
+          <el-button type="primary" size="large" @click="$router.push('/activity/list')">
+            <el-icon><Search /></el-icon>
+            浏览活动
+          </el-button>
+          <el-button size="large" @click="$router.push('/login')" v-if="!userStore.isLoggedIn">
+            <el-icon><User /></el-icon>
+            立即参与
+          </el-button>
         </div>
       </div>
-      <div class="welcome-right">
-        <span class="weather-text">{{ weatherText }}</span>
+      <div class="hero-stats">
+        <div class="hero-stat-item">
+          <div class="hero-stat-num">{{ animatedStats.volunteerCount }}</div>
+          <div class="hero-stat-label">注册志愿者</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-num">{{ animatedStats.orgCount }}</div>
+          <div class="hero-stat-label">志愿组织</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-num">{{ animatedStats.activityCount }}</div>
+          <div class="hero-stat-label">志愿活动</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-num">{{ animatedStats.totalHours }}</div>
+          <div class="hero-stat-label">服务时长(时)</div>
+        </div>
       </div>
     </div>
 
-    <!-- 快捷入口 -->
-    <div class="quick-actions">
-      <div class="section-title">快捷入口</div>
-      <div class="action-buttons">
-        <!-- 志愿者快捷入口 -->
-        <template v-if="userStore.isVolunteer">
-          <div class="action-item" @click="$router.push('/activity/list')">
-            <el-icon size="28"><Search /></el-icon>
-            <span>浏览活动</span>
+    <!-- 快捷导航 -->
+    <div class="navigation-section">
+      <div class="section-header">
+        <h2>快捷导航</h2>
+        <p>快速找到您需要的功能</p>
+      </div>
+      <div class="nav-grid">
+        <div class="nav-card" @click="$router.push('/activity/list')">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <el-icon size="32"><Search /></el-icon>
           </div>
-          <div class="action-item" @click="$router.push('/volunteer/my-registrations')">
-            <el-icon size="28"><Tickets /></el-icon>
-            <span>我的报名</span>
+          <div class="nav-content">
+            <h3>活动列表</h3>
+            <p>浏览和报名志愿活动</p>
           </div>
-          <div class="action-item" @click="$router.push('/volunteer/records')">
-            <el-icon size="28"><Timer /></el-icon>
-            <span>时长记录</span>
-          </div>
-          <div class="action-item" @click="$router.push('/user/profile')">
-            <el-icon size="28"><User /></el-icon>
-            <span>个人中心</span>
-          </div>
-        </template>
+        </div>
 
-        <!-- 组织快捷入口 -->
-        <template v-else-if="userStore.isOrg">
-          <div class="action-item" @click="$router.push('/org/publish-activity')">
-            <el-icon size="28"><Plus /></el-icon>
-            <span>发布活动</span>
+        <div class="nav-card" @click="$router.push('/volunteer/my-registrations')" v-if="userStore.isVolunteer">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <el-icon size="32"><Tickets /></el-icon>
           </div>
-          <div class="action-item" @click="$router.push('/org/my-activity')">
-            <el-icon size="28"><Document /></el-icon>
-            <span>我的活动</span>
+          <div class="nav-content">
+            <h3>我的报名</h3>
+            <p>查看报名状态和签到</p>
           </div>
-          <div class="action-item" @click="$router.push('/org/registrations')">
-            <el-icon size="28"><List /></el-icon>
-            <span>报名管理</span>
-          </div>
-          <div class="action-item" @click="$router.push('/org/profile')">
-            <el-icon size="28"><OfficeBuilding /></el-icon>
-            <span>组织信息</span>
-          </div>
-        </template>
+        </div>
 
-        <!-- 管理员快捷入口 -->
-        <template v-else-if="userStore.isAdmin">
-          <div class="action-item" @click="$router.push('/admin/org-audit')">
-            <el-icon size="28"><Checked /></el-icon>
-            <span>组织审核</span>
+        <div class="nav-card" @click="$router.push('/volunteer/records')" v-if="userStore.isVolunteer">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <el-icon size="32"><Timer /></el-icon>
           </div>
-          <div class="action-item" @click="$router.push('/admin/activity-audit')">
-            <el-icon size="28"><DocumentChecked /></el-icon>
-            <span>活动审核</span>
+          <div class="nav-content">
+            <h3>时长记录</h3>
+            <p>查看志愿服务时长</p>
           </div>
-          <div class="action-item" @click="$router.push('/admin/user-manage')">
-            <el-icon size="28"><UserFilled /></el-icon>
-            <span>用户管理</span>
+        </div>
+
+        <div class="nav-card" @click="$router.push('/org/publish-activity')" v-if="userStore.isOrg">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <el-icon size="32"><Plus /></el-icon>
           </div>
-          <div class="action-item" @click="$router.push('/admin/notice-manage')">
-            <el-icon size="28"><Bell /></el-icon>
-            <span>公告管理</span>
+          <div class="nav-content">
+            <h3>发布活动</h3>
+            <p>创建新的志愿活动</p>
           </div>
-        </template>
+        </div>
+
+        <div class="nav-card" @click="$router.push('/org/my-activity')" v-if="userStore.isOrg">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <el-icon size="32"><Document /></el-icon>
+          </div>
+          <div class="nav-content">
+            <h3>我的活动</h3>
+            <p>管理发布的活动</p>
+          </div>
+        </div>
+
+        <div class="nav-card" @click="$router.push('/org/profile')" v-if="userStore.isOrg">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+            <el-icon size="32"><OfficeBuilding /></el-icon>
+          </div>
+          <div class="nav-content">
+            <h3>组织信息</h3>
+            <p>维护组织基本信息</p>
+          </div>
+        </div>
+
+        <div class="nav-card" @click="$router.push('/admin/org-audit')" v-if="userStore.isAdmin">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <el-icon size="32"><Checked /></el-icon>
+          </div>
+          <div class="nav-content">
+            <h3>组织审核</h3>
+            <p>审核入驻组织申请</p>
+          </div>
+        </div>
+
+        <div class="nav-card" @click="$router.push('/admin/activity-audit')" v-if="userStore.isAdmin">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <el-icon size="32"><DocumentChecked /></el-icon>
+          </div>
+          <div class="nav-content">
+            <h3>活动审核</h3>
+            <p>审核发布的活动</p>
+          </div>
+        </div>
+
+        <div class="nav-card" @click="$router.push('/user/profile')">
+          <div class="nav-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+            <el-icon size="32"><User /></el-icon>
+          </div>
+          <div class="nav-content">
+            <h3>个人中心</h3>
+            <p>管理个人信息</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 志愿者首页内容 -->
-    <template v-if="userStore.isVolunteer">
-      <!-- 统计卡片 -->
-      <div class="stats-row">
+    <!-- 数据统计 -->
+    <div class="section stats-section">
+      <div class="section-header">
+        <h2>平台数据</h2>
+        <p>志愿服务实时统计</p>
+      </div>
+      <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <el-icon size="24"><Timer /></el-icon>
+          <div class="stat-icon volunteer-icon">
+            <el-icon size="40"><UserFilled /></el-icon>
           </div>
           <div class="stat-info">
-            <span class="stat-value">{{ volunteerStats.totalHours || 0 }}</span>
+            <span class="stat-value">{{ homeStats.volunteerCount || 0 }}</span>
+            <span class="stat-label">注册志愿者</span>
+          </div>
+          <div class="stat-trend">
+            <el-icon color="#67c23a"><CaretTop /></el-icon>
+            <span>持续增长</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon org-icon">
+            <el-icon size="40"><OfficeBuilding /></el-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ homeStats.orgCount || 0 }}</span>
+            <span class="stat-label">志愿组织</span>
+          </div>
+          <div class="stat-trend">
+            <el-icon color="#67c23a"><CaretTop /></el-icon>
+            <span>持续增长</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon activity-icon">
+            <el-icon size="40"><Calendar /></el-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ homeStats.activityCount || 0 }}</span>
+            <span class="stat-label">发布活动</span>
+          </div>
+          <div class="stat-badge">{{ homeStats.runningActivityCount || 0 }} 个进行中</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon hours-icon">
+            <el-icon size="40"><Timer /></el-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ homeStats.totalHours || 0 }}</span>
             <span class="stat-label">累计时长(小时)</span>
           </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <el-icon size="24"><Star /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ volunteerStats.totalPoints || 0 }}</span>
-            <span class="stat-label">累计积分</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <el-icon size="24"><Calendar /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ volunteerStats.activityCount || 0 }}</span>
-            <span class="stat-label">参与活动</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <el-icon size="24"><Clock /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ volunteerStats.monthHours || 0 }}</span>
-            <span class="stat-label">本月时长</span>
-          </div>
+          <div class="stat-badge">{{ homeStats.totalParticipations || 0 }} 人次参与</div>
         </div>
       </div>
+    </div>
 
-      <!-- 推荐活动 + 我的报名 -->
-      <div class="content-row">
-        <div class="content-card">
-          <div class="card-header">
-            <span>推荐活动</span>
-            <el-button type="primary" link @click="$router.push('/activity/list')">更多</el-button>
+    <!-- 活动风采 -->
+    <div class="section gallery-section">
+      <div class="section-header">
+        <h2>活动风采</h2>
+        <p>精彩瞬间回顾</p>
+        <el-button type="primary" link @click="$router.push('/activity/list')">查看更多活动</el-button>
+      </div>
+      <div class="gallery-grid" v-loading="galleryLoading">
+        <div
+          v-for="(img, index) in galleryImages"
+          :key="img.fileId"
+          class="gallery-item"
+          :class="{ 'large': index === 0 }"
+        >
+          <el-image
+            :src="getImageUrl(img.fileUrl)"
+            fit="cover"
+            :preview-src-list="galleryImages.map(i => getImageUrl(i.fileUrl))"
+            :initial-index="index"
+          />
+          <div class="gallery-overlay">
+            <el-icon size="24"><View /></el-icon>
           </div>
-          <div class="activity-list" v-loading="activityLoading">
-            <div
-              v-for="item in recommendActivities"
-              :key="item.activityId"
-              class="activity-item"
-              @click="showActivityDetail(item.activityId)"
+        </div>
+        <div v-if="galleryImages.length === 0 && !galleryLoading" class="gallery-empty">
+          <el-empty description="暂无活动风采" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 最新活动 -->
+    <div class="section activities-section">
+      <div class="section-header">
+        <h2>最新活动</h2>
+        <p>火热报名中</p>
+        <el-button type="primary" link @click="$router.push('/activity/list')">查看全部</el-button>
+      </div>
+      <div class="activities-list" v-loading="activitiesLoading">
+        <div
+          v-for="activity in latestActivities"
+          :key="activity.activityId"
+          class="activity-card"
+          @click="showActivityDetail(activity)"
+        >
+          <div class="activity-cover">
+            <el-image
+              :src="getActivityCover(activity)"
+              fit="cover"
             >
-              <div class="activity-title">{{ item.activityName }}</div>
-              <div class="activity-meta">
-                <span><el-icon><Location /></el-icon> {{ item.regionName || '线上' }}</span>
-                <span><el-icon><Calendar /></el-icon> {{ formatDate(item.startTime) }}</span>
-              </div>
+              <template #error>
+                <div class="cover-placeholder">
+                  <el-icon size="40"><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+          </div>
+          <div class="activity-info">
+            <h3 class="activity-title">{{ activity.title }}</h3>
+            <div class="activity-meta">
+              <span><el-icon><OfficeBuilding /></el-icon>{{ activity.orgName }}</span>
             </div>
-            <el-empty v-if="recommendActivities.length === 0 && !activityLoading" description="暂无推荐活动" />
+            <div class="activity-time">
+              <el-icon><Clock /></el-icon>
+              {{ formatDateTime(activity.startTime) }} ~ {{ formatDateTime(activity.endTime) }}
+            </div>
+            <div class="activity-footer">
+              <el-tag :type="getStatusType(activity.status)" size="small">
+                {{ getStatusName(activity.status) }}
+              </el-tag>
+              <span class="activity-count">{{ activity.totalCurrentCount || 0 }}人已报名</span>
+            </div>
           </div>
         </div>
-
-        <div class="content-card">
-          <div class="card-header">
-            <span>我的报名</span>
-            <el-button type="primary" link @click="$router.push('/volunteer/my-registrations')">更多</el-button>
-          </div>
-          <div class="registration-list" v-loading="registrationLoading">
-            <div v-for="item in myRegistrations" :key="item.regId" class="registration-item">
-              <div class="reg-info">
-                <span class="reg-name">{{ item.activityName }}</span>
-                <span class="reg-pos">{{ item.posName }}</span>
-              </div>
-              <el-tag :type="getStatusType(item.regStatus)" size="small">{{ item.statusName }}</el-tag>
-            </div>
-            <el-empty v-if="myRegistrations.length === 0 && !registrationLoading" description="暂无报名记录" />
-          </div>
-        </div>
+        <el-empty v-if="latestActivities.length === 0 && !activitiesLoading" description="暂无活动" />
       </div>
-    </template>
-
-    <!-- 组织首页内容 -->
-    <template v-else-if="userStore.isOrg">
-      <!-- 统计卡片 -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <el-icon size="24"><Document /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ orgStats.totalActivities || 0 }}</span>
-            <span class="stat-label">发布活动</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <el-icon size="24"><VideoPlay /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ orgStats.runningActivities || 0 }}</span>
-            <span class="stat-label">运行中</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <el-icon size="24"><User /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ orgStats.totalRegistrations || 0 }}</span>
-            <span class="stat-label">报名人数</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-            <el-icon size="24"><Bell /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ orgStats.pendingRegistrations || 0 }}</span>
-            <span class="stat-label">待审核报名</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 我的活动 + 待审核报名 -->
-      <div class="content-row">
-        <div class="content-card">
-          <div class="card-header">
-            <span>我的活动</span>
-            <el-button type="primary" link @click="$router.push('/org/my-activity')">更多</el-button>
-          </div>
-          <div class="activity-list" v-loading="orgActivityLoading">
-            <div v-for="item in myActivities" :key="item.activityId" class="activity-item">
-              <div class="activity-title">{{ item.activityName }}</div>
-              <div class="activity-meta">
-                <el-tag :type="getActivityStatusType(item.status)" size="small">{{ item.statusName }}</el-tag>
-                <span>报名: {{ item.registrationCount || 0 }}人</span>
-              </div>
-            </div>
-            <el-empty v-if="myActivities.length === 0 && !orgActivityLoading" description="暂无活动" />
-          </div>
-        </div>
-
-        <div class="content-card">
-          <div class="card-header">
-            <span>待处理事项</span>
-          </div>
-          <div class="todo-list">
-            <div class="todo-item" v-if="orgStats.pendingRegistrations > 0">
-              <el-icon color="#e6a23c"><Warning /></el-icon>
-              <span>有 {{ orgStats.pendingRegistrations }} 条报名待审核</span>
-              <el-button type="primary" size="small" @click="$router.push('/org/registrations')">去处理</el-button>
-            </div>
-            <el-empty v-if="orgStats.pendingRegistrations === 0" description="暂无待处理事项" />
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- 管理员首页内容 -->
-    <template v-else-if="userStore.isAdmin">
-      <!-- 统计卡片 -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <el-icon size="24"><UserFilled /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ adminStats.userCount || 0 }}</span>
-            <span class="stat-label">注册用户</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <el-icon size="24"><OfficeBuilding /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ adminStats.orgCount || 0 }}</span>
-            <span class="stat-label">入驻组织</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <el-icon size="24"><Document /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ adminStats.activityCount || 0 }}</span>
-            <span class="stat-label">发布活动</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-            <el-icon size="24"><User /></el-icon>
-          </div>
-          <div class="stat-info">
-            <span class="stat-value">{{ adminStats.volunteerCount || 0 }}</span>
-            <span class="stat-label">志愿者</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 待办事项 + 系统公告 -->
-      <div class="content-row">
-        <div class="content-card">
-          <div class="card-header">
-            <span>待办事项</span>
-          </div>
-          <div class="todo-list">
-            <div class="todo-item" v-if="adminStats.pendingOrgs > 0">
-              <el-icon color="#e6a23c"><Warning /></el-icon>
-              <span>有 {{ adminStats.pendingOrgs }} 个组织待审核</span>
-              <el-button type="primary" size="small" @click="$router.push('/admin/org-audit')">去处理</el-button>
-            </div>
-            <div class="todo-item" v-if="adminStats.pendingActivities > 0">
-              <el-icon color="#e6a23c"><Warning /></el-icon>
-              <span>有 {{ adminStats.pendingActivities }} 个活动待审核</span>
-              <el-button type="primary" size="small" @click="$router.push('/admin/activity-audit')">去处理</el-button>
-            </div>
-            <el-empty v-if="adminStats.pendingOrgs === 0 && adminStats.pendingActivities === 0" description="暂无待办事项" />
-          </div>
-        </div>
-
-        <div class="content-card">
-          <div class="card-header">
-            <span>系统公告</span>
-            <el-button type="primary" link @click="$router.push('/admin/notice-manage')">管理</el-button>
-          </div>
-          <div class="notice-list" v-loading="noticeLoading">
-            <div v-for="item in notices" :key="item.noticeId" class="notice-item">
-              <span class="notice-title">{{ item.title }}</span>
-              <span class="notice-date">{{ formatDate(item.createTime) }}</span>
-            </div>
-            <el-empty v-if="notices.length === 0 && !noticeLoading" description="暂无公告" />
-          </div>
-        </div>
-      </div>
-    </template>
+    </div>
 
     <!-- 活动详情弹窗 -->
-    <ActivityDetailDialog v-model="activityDetailVisible" :activity-id="currentActivityId" />
+    <ActivityDetailDialog
+      v-model="activityDetailVisible"
+      :data="activityDetailData"
+      :show-register="userStore.isVolunteer"
+      @register="handleRegister"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getVolunteerStats, getMyRegistrations } from '@/api/volunteer'
-import { getActivityList, getMyActivities } from '@/api/activity'
-import { getLatestNotices } from '@/api/system'
+import { getHomeStats, getHomeGallery } from '@/api/home'
+import { getActivityList } from '@/api/activity'
 import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
 import {
-  Search, Tickets, Timer, User, Plus, Document, List, OfficeBuilding,
-  Checked, DocumentChecked, UserFilled, Bell, Star, Calendar, Clock,
-  Location, VideoPlay, Warning
+  Search, Tickets, Timer, User, Plus, Document, OfficeBuilding,
+  Checked, DocumentChecked, UserFilled, Calendar, Clock,
+  View, Picture, CaretTop
 } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 
-// 欢迎语
-const greeting = computed(() => {
-  const hour = new Date().getHours()
-  if (hour < 6) return '凌晨好'
-  if (hour < 9) return '早上好'
-  if (hour < 12) return '上午好'
-  if (hour < 14) return '中午好'
-  if (hour < 17) return '下午好'
-  if (hour < 19) return '傍晚好'
-  if (hour < 22) return '晚上好'
-  return '夜深了'
-})
-
-const todayStr = computed(() => {
-  const now = new Date()
-  const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  return `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${weekDays[now.getDay()]}`
-})
-
-const weatherText = ref('天气晴朗，适合参加志愿活动')
-
-const roleText = computed(() => {
-  const role = userStore.userInfo?.role
-  if (role === 0) return '志愿者'
-  if (role === 1) return '组织负责人'
-  if (role === 2) return '系统管理员'
-  return '未知角色'
-})
-
-// 志愿者数据
-const volunteerStats = ref({})
-const recommendActivities = ref([])
-const myRegistrations = ref([])
-const activityLoading = ref(false)
-const registrationLoading = ref(false)
-
-// 组织数据
-const orgStats = ref({})
-const myActivities = ref([])
-const orgActivityLoading = ref(false)
-
-// 管理员数据
-const adminStats = ref({
-  userCount: 0,
+// 统计数据
+const homeStats = ref({})
+const animatedStats = ref({
+  volunteerCount: 0,
   orgCount: 0,
   activityCount: 0,
-  volunteerCount: 0,
-  pendingOrgs: 0,
-  pendingActivities: 0
+  totalHours: 0
 })
 
-// 公告
-const notices = ref([])
-const noticeLoading = ref(false)
+// 活动风采
+const galleryImages = ref([])
+const galleryLoading = ref(false)
+
+// 最新活动
+const latestActivities = ref([])
+const activitiesLoading = ref(false)
 
 // 活动详情弹窗
 const activityDetailVisible = ref(false)
-const currentActivityId = ref(null)
+const activityDetailData = ref({})
 
 onMounted(async () => {
-  if (userStore.isVolunteer) {
-    loadVolunteerData()
-  } else if (userStore.isOrg) {
-    loadOrgData()
-  } else if (userStore.isAdmin) {
-    loadAdminData()
-  }
-  loadNotices()
+  loadHomeStats()
+  loadGallery()
+  loadLatestActivities()
 })
 
-async function loadVolunteerData() {
+async function loadHomeStats() {
   try {
-    const stats = await getVolunteerStats()
-    volunteerStats.value = stats || {}
-  } catch {}
-
-  activityLoading.value = true
-  try {
-    const data = await getActivityList({ page: 1, size: 5, status: 1 })
-    recommendActivities.value = data.records || []
-  } catch {} finally {
-    activityLoading.value = false
-  }
-
-  registrationLoading.value = true
-  try {
-    const data = await getMyRegistrations({ page: 1, size: 5 })
-    myRegistrations.value = data.records || []
-  } catch {} finally {
-    registrationLoading.value = false
+    const data = await getHomeStats()
+    homeStats.value = data || {}
+    animateNumbers()
+  } catch (e) {
+    console.error('加载统计数据失败:', e)
   }
 }
 
-async function loadOrgData() {
-  orgActivityLoading.value = true
-  try {
-    const data = await getMyActivities({ page: 1, size: 5 })
-    myActivities.value = data.records || []
+function animateNumbers() {
+  const duration = 1500
+  const targets = {
+    volunteerCount: homeStats.value.volunteerCount || 0,
+    orgCount: homeStats.value.orgCount || 0,
+    activityCount: homeStats.value.activityCount || 0,
+    totalHours: homeStats.value.totalHours || 0
+  }
 
-    // 计算统计数据
-    const activities = data.records || []
-    orgStats.value = {
-      totalActivities: data.total || 0,
-      runningActivities: activities.filter(a => a.status === 1).length,
-      totalRegistrations: activities.reduce((sum, a) => sum + (a.registrationCount || 0), 0),
-      pendingRegistrations: activities.reduce((sum, a) => sum + (a.pendingCount || 0), 0)
+  const startTime = Date.now()
+  const animate = () => {
+    const elapsed = Date.now() - startTime
+    const progress = Math.min(elapsed / duration, 1)
+
+    animatedStats.value = {
+      volunteerCount: Math.floor(targets.volunteerCount * progress),
+      orgCount: Math.floor(targets.orgCount * progress),
+      activityCount: Math.floor(targets.activityCount * progress),
+      totalHours: Math.floor(targets.totalHours * progress)
     }
-  } catch {} finally {
-    orgActivityLoading.value = false
+
+    if (progress < 1) {
+      requestAnimationFrame(animate)
+    }
   }
+  animate()
 }
 
-async function loadAdminData() {
-  // TODO: 需要后端提供管理员统计接口
-  // 目前使用模拟数据
-  adminStats.value = {
-    userCount: 128,
-    orgCount: 15,
-    activityCount: 42,
-    volunteerCount: 98,
-    pendingOrgs: 3,
-    pendingActivities: 5
-  }
-}
-
-async function loadNotices() {
-  noticeLoading.value = true
+async function loadGallery() {
+  galleryLoading.value = true
   try {
-    const data = await getLatestNotices(5)
-    notices.value = data || []
-  } catch {} finally {
-    noticeLoading.value = false
+    const data = await getHomeGallery()
+    galleryImages.value = data || []
+  } catch (e) {
+    console.error('加载活动风采失败:', e)
+  } finally {
+    galleryLoading.value = false
   }
 }
 
-function showActivityDetail(id) {
-  currentActivityId.value = id
+async function loadLatestActivities() {
+  activitiesLoading.value = true
+  try {
+    const data = await getActivityList({ page: 1, size: 6, status: 1 })
+    latestActivities.value = data.records || []
+  } catch (e) {
+    console.error('加载最新活动失败:', e)
+  } finally {
+    activitiesLoading.value = false
+  }
+}
+
+function getImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return `/api${url}`
+}
+
+function getActivityCover(activity) {
+  // 查找该活动的封面图片
+  const cover = galleryImages.value.find(img => img.bizId === activity.activityId)
+  return cover ? getImageUrl(cover.fileUrl) : ''
+}
+
+function showActivityDetail(activity) {
+  activityDetailData.value = activity
   activityDetailVisible.value = true
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return `${date.getMonth() + 1}/${date.getDate()}`
+function handleRegister(data) {
+  console.log('报名:', data)
+}
+
+function formatDateTime(time) {
+  if (!time) return ''
+  const date = new Date(time)
+  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
 }
 
 function getStatusType(status) {
-  const map = { 0: 'warning', 1: 'success', 2: 'danger' }
-  return map[status] || 'info'
+  const types = { 0: 'info', 1: 'success', 2: 'info', 3: 'warning', 4: 'danger' }
+  return types[status] || 'info'
 }
 
-function getActivityStatusType(status) {
-  const map = { 0: 'info', 1: 'success', 2: 'info', 3: 'warning', 4: 'danger' }
-  return map[status] || 'info'
+function getStatusName(status) {
+  const names = { 0: '待启动', 1: '运行中', 2: '已结项', 3: '待审核', 4: '已拒绝' }
+  return names[status] || '未知'
 }
 </script>
 
 <style scoped>
-.home-page {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* 欢迎区域 */
-.welcome-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 24px 32px;
-  color: #fff;
-  margin-bottom: 20px;
-}
-
-.welcome-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.welcome-text h2 {
-  margin: 0 0 4px 0;
-  font-size: 22px;
-}
-
-.welcome-text p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.weather-text {
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-/* 快捷入口 */
-.quick-actions {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 16px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 16px;
-}
-
-.action-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s;
+.welcome-page {
+  min-height: 100vh;
   background: #f5f7fa;
 }
 
-.action-item:hover {
-  background: #e6f0ff;
-  transform: translateY(-2px);
+/* Hero Banner */
+.hero-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 60px 40px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
 }
 
-.action-item span {
-  font-size: 14px;
-  color: #606266;
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* 统计卡片 */
-.stats-row {
+.hero-content {
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+.hero-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  letter-spacing: 2px;
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  opacity: 0.9;
+  margin: 0 0 32px 0;
+}
+
+.hero-actions {
   display: flex;
   gap: 16px;
-  margin-bottom: 20px;
 }
 
-.stat-card {
-  flex: 1;
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.hero-stat-item {
+  text-align: center;
+}
+
+.hero-stat-num {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.hero-stat-label {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* Navigation */
+.navigation-section {
   background: #fff;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 30px;
+  margin: -20px 20px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 1400px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-header h2 {
+  font-size: 24px;
+  color: #303133;
+  margin: 0;
+}
+
+.section-header p {
+  font-size: 14px;
+  color: #909399;
+  margin: 0;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.nav-card {
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  background: #f5f7fa;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.nav-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+
+.nav-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
 }
 
-.stat-info {
+.nav-content h3 {
+  font-size: 16px;
+  color: #303133;
+  margin: 0 0 4px 0;
+}
+
+.nav-content p {
+  font-size: 13px;
+  color: #909399;
+  margin: 0;
+}
+
+/* Section */
+.section {
+  max-width: 1400px;
+  margin: 40px auto 0;
+  padding: 0 20px;
+}
+
+.stats-section {
+  margin-top: 40px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.volunteer-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.org-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.activity-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.hours-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-info {
+  text-align: center;
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 32px;
+  font-weight: 700;
   color: #303133;
 }
 
 .stat-label {
-  font-size: 13px;
+  font-size: 14px;
   color: #909399;
   margin-top: 4px;
 }
 
-/* 内容区域 */
-.content-row {
+.stat-trend {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.content-card {
-  flex: 1;
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #303133;
-  border-bottom: 1px solid #ebeef5;
-  padding-bottom: 12px;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #67c23a;
 }
 
-/* 活动列表 */
-.activity-list {
+.stat-badge {
+  margin-top: 12px;
+  padding: 4px 12px;
+  background: #f0f9ff;
+  color: #409eff;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* Gallery */
+.gallery-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 180px);
+  gap: 12px;
+}
+
+.gallery-item {
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+
+.gallery-item.large {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.gallery-item .el-image {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.gallery-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+.gallery-empty {
+  grid-column: span 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 200px;
 }
 
-.activity-item {
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+/* Activities */
+.activities-section {
+  padding-bottom: 40px;
+}
+
+.activities-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.activity-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
-.activity-item:hover {
-  background: #f9fafc;
+.activity-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
-.activity-item:last-child {
-  border-bottom: none;
+.activity-cover {
+  height: 160px;
+  background: #f5f7fa;
+}
+
+.activity-cover .el-image {
+  width: 100%;
+  height: 100%;
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c0c4cc;
+  background: #f5f7fa;
+}
+
+.activity-info {
+  padding: 16px;
 }
 
 .activity-title {
-  font-size: 14px;
+  font-size: 16px;
   color: #303133;
-  margin-bottom: 8px;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .activity-meta {
   display: flex;
-  gap: 16px;
-  font-size: 12px;
+  gap: 12px;
+  font-size: 13px;
   color: #909399;
+  margin-bottom: 8px;
 }
 
 .activity-meta span {
@@ -694,113 +785,66 @@ function getActivityStatusType(status) {
   gap: 4px;
 }
 
-/* 报名列表 */
-.registration-list {
-  min-height: 200px;
-}
-
-.registration-item {
+.activity-time {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.registration-item:last-child {
-  border-bottom: none;
-}
-
-.reg-info {
-  display: flex;
-  flex-direction: column;
   gap: 4px;
-}
-
-.reg-name {
-  font-size: 14px;
-  color: #303133;
-}
-
-.reg-pos {
-  font-size: 12px;
-  color: #909399;
-}
-
-/* 待办事项 */
-.todo-list {
-  min-height: 200px;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #fdf6ec;
-  border-radius: 8px;
+  font-size: 13px;
+  color: #606266;
   margin-bottom: 12px;
 }
 
-.todo-item span {
-  flex: 1;
-  font-size: 14px;
-  color: #606266;
-}
-
-/* 公告列表 */
-.notice-list {
-  min-height: 200px;
-}
-
-.notice-item {
+.activity-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
 }
 
-.notice-item:last-child {
-  border-bottom: none;
+.activity-count {
+  font-size: 13px;
+  color: #67c23a;
 }
 
-.notice-title {
-  font-size: 14px;
-  color: #303133;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notice-date {
-  font-size: 12px;
-  color: #909399;
-  margin-left: 12px;
-}
-
-/* 响应式 */
+/* Responsive */
 @media (max-width: 1200px) {
-  .stats-row {
-    flex-wrap: wrap;
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .stat-card {
-    flex: 1 1 calc(50% - 8px);
-    min-width: 200px;
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 150px);
+  }
+  .gallery-item.large {
+    grid-column: span 1;
+    grid-row: span 1;
   }
 }
 
 @media (max-width: 992px) {
-  .content-row {
-    flex-direction: column;
+  .activities-list {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .action-buttons {
+  .hero-title {
+    font-size: 36px;
+  }
+  .hero-stats {
     flex-wrap: wrap;
+    gap: 20px;
   }
-  .action-item {
-    flex: 1 1 calc(25% - 12px);
-    min-width: 120px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .activities-list {
+    grid-template-columns: 1fr;
+  }
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-actions {
+    flex-direction: column;
   }
 }
 </style>

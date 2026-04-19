@@ -1,214 +1,184 @@
 <template>
-  <div class="activity-list">
-    <!-- 筛选工具栏 -->
-    <el-card class="filter-card">
-      <el-form :inline="true" :model="queryParams" class="filter-form">
-        <el-form-item label="关键词">
-          <el-input
-            v-model="queryParams.keyword"
-            placeholder="搜索活动标题"
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="服务类别">
-          <el-select
-            v-model="queryParams.categoryId"
-            placeholder="全部"
-            clearable
-            style="width: 140px"
-          >
-            <el-option
-              v-for="item in categoryList"
-              :key="item.dictKey"
-              :label="item.dictValue"
-              :value="item.dictKey"
+  <GuestLayout>
+    <div class="activity-list-page">
+      <!-- 筛选工具栏 -->
+      <div class="filter-section">
+        <el-form :inline="true" :model="queryParams" class="filter-form">
+          <el-form-item label="关键词">
+            <el-input
+              v-model="queryParams.keyword"
+              placeholder="搜索活动标题"
+              clearable
+              @keyup.enter="handleSearch"
             />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属地区">
-          <el-select
-            v-model="selectedProvince"
-            placeholder="选择省"
-            clearable
-            style="width: 120px"
-            @change="handleProvinceChange"
-          >
-            <el-option
-              v-for="item in provinceList"
-              :key="item.regionCode"
-              :label="item.regionName"
-              :value="item.regionCode"
-            />
-          </el-select>
-          <el-select
-            v-model="selectedCity"
-            placeholder="选择市"
-            clearable
-            style="width: 120px; margin-left: 8px"
-            :disabled="!selectedProvince"
-            @change="handleCityChange"
-          >
-            <el-option
-              v-for="item in cityList"
-              :key="item.regionCode"
-              :label="item.regionName"
-              :value="item.regionCode"
-            />
-          </el-select>
-          <el-select
-            v-model="selectedDistrict"
-            placeholder="选择区"
-            clearable
-            style="width: 120px; margin-left: 8px"
-            :disabled="!selectedCity"
-            @change="handleDistrictChange"
-          >
-            <el-option
-              v-for="item in districtList"
-              :key="item.regionCode"
-              :label="item.regionName"
-              :value="item.regionCode"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="活动状态">
-          <el-select
-            v-model="queryParams.status"
-            placeholder="全部"
-            clearable
-            style="width: 120px"
-          >
-            <el-option label="待启动" :value="0" />
-            <el-option label="运行中" :value="1" />
-            <el-option label="已结项" :value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+          </el-form-item>
+          <el-form-item label="服务类别">
+            <el-select
+              v-model="queryParams.categoryId"
+              placeholder="全部"
+              clearable
+              style="width: 140px"
+            >
+              <el-option
+                v-for="item in categoryList"
+                :key="item.dictKey"
+                :label="item.dictValue"
+                :value="item.dictKey"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="所属地区">
+            <el-select
+              v-model="selectedProvince"
+              placeholder="选择省"
+              clearable
+              style="width: 120px"
+              @change="handleProvinceChange"
+            >
+              <el-option
+                v-for="item in provinceList"
+                :key="item.regionCode"
+                :label="item.regionName"
+                :value="item.regionCode"
+              />
+            </el-select>
+            <el-select
+              v-model="selectedCity"
+              placeholder="选择市"
+              clearable
+              style="width: 120px; margin-left: 8px"
+              :disabled="!selectedProvince"
+              @change="handleCityChange"
+            >
+              <el-option
+                v-for="item in cityList"
+                :key="item.regionCode"
+                :label="item.regionName"
+                :value="item.regionCode"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="活动状态">
+            <el-select
+              v-model="queryParams.status"
+              placeholder="全部"
+              clearable
+              style="width: 120px"
+            >
+              <el-option label="待启动" :value="0" />
+              <el-option label="运行中" :value="1" />
+              <el-option label="已结项" :value="2" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">搜索</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
 
-    <!-- 活动列表 -->
-    <el-card class="list-card">
-      <el-table v-loading="loading" :data="activityList" stripe>
-        <el-table-column prop="projectCode" label="项目编号" width="150" />
-        <el-table-column prop="title" label="项目标题" min-width="200">
-          <template #default="{ row }">
-            <el-link type="primary" @click="handleViewDetail(row.activityId)">
-              {{ row.title }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="categoryName" label="服务类别" width="120" />
-        <el-table-column prop="regionName" label="所属地区" width="120" />
-        <el-table-column label="发起组织" width="150">
-          <template #default="{ row }">
-            <el-link type="primary" @click="showOrgDetail(row.orgId)">
-              {{ row.orgName }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column label="报名时间" width="200">
-          <template #default="{ row }">
-            {{ formatTimeRange(row.startTime, row.endTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="报名情况" width="120">
-          <template #default="{ row }">
-            <span :class="getCountClass(row.totalCurrentCount, row.totalPlanCount)">
-              {{ row.totalCurrentCount }}/{{ row.totalPlanCount }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="statusName" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ row.statusName }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="handleViewDetail(row.activityId)">
-              查看详情
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 活动卡片列表 -->
+      <div class="activities-section" v-loading="loading">
+        <div class="activities-grid">
+          <div
+            v-for="activity in activityList"
+            :key="activity.activityId"
+            class="activity-card"
+            @click="goToDetail(activity.activityId)"
+          >
+            <div class="activity-cover">
+              <el-image
+                :src="activity.coverImageUrl || ''"
+                fit="cover"
+              >
+                <template #error>
+                  <div class="cover-placeholder">
+                    <el-icon size="48"><Picture /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+              <div class="cover-badge">
+                <el-tag :type="getStatusType(activity.status)" size="small">
+                  {{ activity.statusName }}
+                </el-tag>
+              </div>
+            </div>
+            <div class="activity-info">
+              <h3 class="activity-title">{{ activity.title }}</h3>
+              <div class="activity-meta">
+                <span class="meta-item">
+                  <el-icon><OfficeBuilding /></el-icon>
+                  {{ activity.orgName }}
+                </span>
+              </div>
+              <div class="activity-time">
+                <el-icon><Clock /></el-icon>
+                {{ formatDateTime(activity.startTime) }} ~ {{ formatDateTime(activity.endTime) }}
+              </div>
+              <div class="activity-footer">
+                <span class="activity-region">
+                  <el-icon><Location /></el-icon>
+                  {{ activity.regionName || '线上' }}
+                </span>
+                <span class="activity-count">
+                  {{ activity.totalCurrentCount || 0 }}/{{ activity.totalPlanCount || 0 }}人
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <el-pagination
-        v-model:current-page="queryParams.page"
-        v-model:page-size="queryParams.size"
-        :total="total"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; justify-content: flex-end"
-        @size-change="loadActivityList"
-        @current-change="loadActivityList"
-      />
-    </el-card>
+        <el-empty v-if="activityList.length === 0 && !loading" description="暂无活动" :image-size="100" />
 
-    <!-- 活动详情弹窗 -->
-    <ActivityDetailDialog
-      v-model="detailVisible"
-      :data="detailData"
-      :show-register="userStore.isVolunteer && detailData.status === 0"
-      @register="handleRegister"
-    />
-
-    <!-- 组织详情弹窗 -->
-    <OrgDetailDialog
-      v-model="orgDetailVisible"
-      :org-id="selectedOrgId"
-    />
-  </div>
+        <!-- 分页 -->
+        <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          :page-sizes="[12, 24, 48]"
+          layout="total, sizes, prev, pager, next"
+          class="pagination"
+          @size-change="loadActivityList"
+          @current-change="loadActivityList"
+        />
+      </div>
+    </div>
+  </GuestLayout>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { getActivityList, getActivityDetail } from '@/api/activity'
-import { getDict } from '@/api/system'
-import { registerActivity } from '@/api/volunteer'
-import { useRegion } from '@/composables/useRegion'
-import { getStatusType, formatTimeRange, getCountClass } from '@/utils/activity'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import ActivityDetailDialog from '@/components/activity/ActivityDetailDialog.vue'
-import OrgDetailDialog from '@/components/org/OrgDetailDialog.vue'
+import GuestLayout from '@/layouts/GuestLayout.vue'
+import { getActivityList } from '@/api/activity'
+import { getDict } from '@/api/system'
+import { useRegion } from '@/composables/useRegion'
+import { Picture, OfficeBuilding, Clock, Location } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
+const router = useRouter()
 const loading = ref(false)
-const detailVisible = ref(false)
-const detailData = ref({})
 const activityList = ref([])
 const total = ref(0)
 const categoryList = ref([])
 
-// 组织详情弹窗
-const orgDetailVisible = ref(false)
-const selectedOrgId = ref(null)
-
 const {
   provinceList,
   cityList,
-  districtList,
   selectedProvince,
   selectedCity,
-  selectedDistrict,
   regionCode,
   loadProvinces,
   handleProvinceChange,
   handleCityChange,
-  handleDistrictChange,
   resetRegion
 } = useRegion()
 
 const queryParams = reactive({
   page: 1,
-  size: 10,
+  size: 12,
   keyword: '',
   categoryId: '',
   status: null
@@ -243,8 +213,8 @@ async function loadActivityList() {
       status: queryParams.status
     }
     const res = await getActivityList(params)
-    activityList.value = res.records
-    total.value = res.total
+    activityList.value = res.records || []
+    total.value = res.total || 0
   } catch {
     ElMessage.error('加载活动列表失败')
   } finally {
@@ -266,72 +236,175 @@ function handleReset() {
   loadActivityList()
 }
 
-async function handleViewDetail(id) {
-  try {
-    const res = await getActivityDetail(id)
-    detailData.value = res
-    detailVisible.value = true
-  } catch {
-    ElMessage.error('加载活动详情失败')
-  }
+function goToDetail(activityId) {
+  router.push(`/activity/detail/${activityId}`)
 }
 
-async function handleRegister(data) {
-  try {
-    await ElMessageBox.confirm(
-      `确定要报名岗位「${data.posName}」吗？`,
-      '报名确认',
-      {
-        confirmButtonText: '确定报名',
-        cancelButtonText: '取消',
-        type: 'info'
-      }
-    )
-    await registerActivity({
-      activityId: data.activityId,
-      posId: data.posId
-    })
-    ElMessage.success('报名成功，请等待审核')
-    detailVisible.value = false
-    loadActivityList()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('报名失败:', error)
-    }
-  }
+function formatDateTime(time) {
+  if (!time) return ''
+  const date = new Date(time)
+  return `${date.getMonth() + 1}/${date.getDate()}`
 }
 
-// 显示组织详情弹窗
-function showOrgDetail(orgId) {
-  selectedOrgId.value = orgId
-  orgDetailVisible.value = true
+function getStatusType(status) {
+  const types = { 0: 'info', 1: 'success', 2: 'info', 3: 'warning', 4: 'danger' }
+  return types[status] || 'info'
 }
 </script>
 
 <style scoped>
-.activity-list {
-  padding: 20px;
+.activity-list-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-.filter-card {
-  margin-bottom: 20px;
+.filter-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .filter-form {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
-.text-danger {
-  color: #f56c6c;
+.activities-section {
+  min-height: 400px;
 }
 
-.text-warning {
-  color: #e6a23c;
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
 }
 
-.text-success {
+.activity-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.activity-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(102, 126, 234, 0.2);
+}
+
+.activity-cover {
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-cover .el-image {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s;
+}
+
+.activity-card:hover .activity-cover .el-image {
+  transform: scale(1.08);
+}
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  color: #c0c4cc;
+}
+
+.cover-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.activity-info {
+  padding: 16px;
+}
+
+.activity-title {
+  font-size: 16px;
+  color: #303133;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-meta {
+  margin-bottom: 8px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.activity-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 12px;
+}
+
+.activity-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.activity-region {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #909399;
+}
+
+.activity-count {
   color: #67c23a;
+  font-weight: 500;
+}
+
+.pagination {
+  margin-top: 24px;
+  justify-content: center;
+}
+
+@media (max-width: 1200px) {
+  .activities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .activities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .activities-grid {
+    grid-template-columns: 1fr;
+  }
+  .activity-cover {
+    height: 180px;
+  }
 }
 </style>

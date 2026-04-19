@@ -9,12 +9,14 @@ import com.vms.repository.entity.ActivityPosition;
 import com.vms.repository.entity.Organization;
 import com.vms.repository.entity.Registration;
 import com.vms.repository.entity.SysDict;
+import com.vms.repository.entity.SysFile;
 import com.vms.repository.entity.SysRegion;
 import com.vms.repository.mapper.ActivityMapper;
 import com.vms.repository.mapper.ActivityPositionMapper;
 import com.vms.repository.mapper.OrganizationMapper;
 import com.vms.repository.mapper.RegistrationMapper;
 import com.vms.repository.mapper.SysDictMapper;
+import com.vms.repository.mapper.SysFileMapper;
 import com.vms.repository.mapper.SysRegionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -37,8 +39,10 @@ public class ActivitySupport {
     private final SysDictMapper dictMapper;
     private final SysRegionMapper regionMapper;
     private final RegistrationMapper registrationMapper;
+    private final SysFileMapper sysFileMapper;
 
     private static final String SERVICE_CATEGORY = "service_category";
+    private static final String TARGET_AUDIENCE = "target_audience";
 
     // ==================== 状态相关 ====================
 
@@ -99,6 +103,23 @@ public class ActivitySupport {
      */
     public String getCategoryName(String categoryId) {
         return getDictValue(SERVICE_CATEGORY, categoryId);
+    }
+
+    /**
+     * 获取服务对象名称（多个编码转换为逗号分隔的名称）
+     */
+    public String getTargetAudienceName(String targetAudience) {
+        if (targetAudience == null || targetAudience.isEmpty()) return null;
+        String[] keys = targetAudience.split(",");
+        StringBuilder sb = new StringBuilder();
+        for (String key : keys) {
+            String value = getDictValue(TARGET_AUDIENCE, key.trim());
+            if (value != null) {
+                if (sb.length() > 0) sb.append(",");
+                sb.append(value);
+            }
+        }
+        return sb.length() > 0 ? sb.toString() : targetAudience;
     }
 
     /**
@@ -182,6 +203,10 @@ public class ActivitySupport {
         vo.setRegionName(getRegionName(activity.getRegionCode()));
         vo.setOrgId(activity.getOrgId());
         vo.setOrgName(getOrgName(activity.getOrgId()));
+        vo.setTargetAudienceName(getTargetAudienceName(activity.getTargetAudience()));
+
+        // 封面图片
+        vo.setCoverImageUrl(getCoverImageUrl(activity.getActivityId()));
 
         // 岗位统计
         vo.setTotalPlanCount(calculateTotalPlanCount(activity.getActivityId()));
@@ -243,6 +268,10 @@ public class ActivitySupport {
         vo.setCategoryName(getCategoryName(activity.getCategoryId()));
         vo.setRegionName(getRegionName(activity.getRegionCode()));
         vo.setOrgName(getOrgName(activity.getOrgId()));
+        vo.setTargetAudienceName(getTargetAudienceName(activity.getTargetAudience()));
+
+        // 封面图片
+        vo.setCoverImageUrl(getCoverImageUrl(activity.getActivityId()));
 
         // 岗位列表
         List<ActivityPosition> positions = getPositions(activity.getActivityId());
@@ -252,6 +281,19 @@ public class ActivitySupport {
         vo.setPositions(posVOList);
 
         return vo;
+    }
+
+    /**
+     * 获取活动封面图片URL
+     */
+    private String getCoverImageUrl(Long activityId) {
+        LambdaQueryWrapper<SysFile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysFile::getBizType, "activity_image")
+               .eq(SysFile::getBizId, activityId)
+               .eq(SysFile::getIsCover, 1)
+               .last("LIMIT 1");
+        SysFile file = sysFileMapper.selectOne(wrapper);
+        return file != null ? file.getFileUrl() : null;
     }
 
     /**

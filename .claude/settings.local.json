@@ -35,7 +35,8 @@
       "Bash(ORG_TOKEN=\"eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoxLCJ1c2VySWQiOjMsInVzZXJuYW1lIjoienowMSIsInN1YiI6Inp6MDEiLCJpYXQiOjE3NzM3MjM3NzAsImV4cCI6MTc3MzgxMDE3MH0.HYnx9SBrmZh65gX_Us2eVdjVxtoj2g3FEmziUe87-MOz4IqhHHR7e_EwmFyxXOj0\")",
       "Bash(__NEW_LINE_c69d679d320507b9__ echo:*)",
       "Bash(__NEW_LINE_58292dcda6ef548f__ echo:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

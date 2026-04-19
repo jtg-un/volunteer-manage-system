@@ -65,7 +65,7 @@
     <el-container>
       <el-header>
         <div class="header-content">
-          <span class="title">志愿者管理系统</span>
+          <span class="title">志愿服务管理系统</span>
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <el-avatar :size="32" :src="userStore.userInfo?.avatarUrl" icon="UserFilled" />
