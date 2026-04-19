@@ -89,6 +89,9 @@
         <router-view />
       </el-main>
     </el-container>
+
+    <!-- AI智能推荐助手（仅志愿者可见） -->
+    <AiAssistant v-if="userStore.isVolunteer" />
   </el-container>
 </template>
 
@@ -98,6 +101,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { HomeFilled, ArrowDown, OfficeBuilding, Checked, List, Setting, User } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import AiAssistant from '@/components/common/AiAssistant.vue'
 
 const route = useRoute()
 const router = useRouter()

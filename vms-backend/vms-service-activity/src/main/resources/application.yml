@@ -34,6 +34,12 @@ file:
   access:
     url-prefix: /uploads/images/
 
+# DeepSeek AI配置
+deepseek:
+  api-key: yourkey
+  base-url: https://api.deepseek.com/v1
+  model: deepseek-chat
+
 logging:
   level:
     com.vms: debug

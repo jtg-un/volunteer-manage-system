@@ -77,6 +77,11 @@ export default defineConfig({
         target: 'http://localhost:8083',
         changeOrigin: true
       },
+      // AI推荐接口 (8083)
+      '/api/ai': {
+        target: 'http://localhost:8083',
+        changeOrigin: true
+      },
       // 志愿者端接口 (8083)
       '/api/volunteer': {
         target: 'http://localhost:8083',

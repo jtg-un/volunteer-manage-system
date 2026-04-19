@@ -286,7 +286,7 @@ public class ActivitySupport {
     /**
      * 获取活动封面图片URL
      */
-    private String getCoverImageUrl(Long activityId) {
+    public String getCoverImageUrl(Long activityId) {
         LambdaQueryWrapper<SysFile> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysFile::getBizType, "activity_image")
                .eq(SysFile::getBizId, activityId)

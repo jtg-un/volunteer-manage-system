@@ -279,6 +279,9 @@
     <div class="footer">
       <p>志愿服务管理系统 © 2026</p>
     </div>
+
+    <!-- AI智能推荐助手 -->
+    <AiAssistant />
   </div>
 </template>
 
@@ -287,6 +290,7 @@ import { ref, onMounted } from 'vue'
 import { getHomeStats, getHomeGallery } from '@/api/home'
 import { getActivityList } from '@/api/activity'
 import { getLatestNotices } from '@/api/system'
+import AiAssistant from '@/components/common/AiAssistant.vue'
 import {
   Search, Timer, OfficeBuilding, DocumentChecked, Tickets, Star,
   Clock, Location, User, Picture, Bell
