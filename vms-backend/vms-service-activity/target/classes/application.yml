@@ -36,7 +36,8 @@ file:
 
 # DeepSeek AI配置
 deepseek:
-  api-key: sk-6cfb298e33b64799ade7998b2b1182ab
+  api-key: yourkeys
+
   base-url: https://api.deepseek.com/v1
   model: deepseek-chat
 
