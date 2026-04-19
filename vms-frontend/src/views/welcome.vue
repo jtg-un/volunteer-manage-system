@@ -41,6 +41,36 @@
       </div>
     </div>
 
+    <!-- 公告栏 -->
+    <div class="notice-bar-section">
+      <div class="notice-bar-container">
+        <div class="notice-bar-header">
+          <el-icon class="notice-icon"><Bell /></el-icon>
+          <span class="notice-bar-title">系统公告</span>
+          <el-button type="primary" link size="small" @click="$router.push('/notice/list')">
+            更多公告
+          </el-button>
+        </div>
+        <div class="notice-list" v-loading="noticeLoading">
+          <template v-if="notices.length > 0">
+            <div
+              v-for="notice in notices"
+              :key="notice.noticeId"
+              class="notice-row"
+              @click="goToNotice(notice.noticeId)"
+            >
+              <el-tag :type="notice.type === 1 ? 'warning' : 'info'" size="small">
+                {{ notice.typeName }}
+              </el-tag>
+              <span class="notice-title-text">{{ notice.title }}</span>
+              <span class="notice-time">{{ formatNoticeDate(notice.createTime) }}</span>
+            </div>
+          </template>
+          <div v-else class="notice-empty">暂无公告</div>
+        </div>
+      </div>
+    </div>
+
     <!-- 功能介绍 -->
     <div class="section features-section">
       <div class="section-title">
@@ -256,9 +286,10 @@
 import { ref, onMounted } from 'vue'
 import { getHomeStats, getHomeGallery } from '@/api/home'
 import { getActivityList } from '@/api/activity'
+import { getLatestNotices } from '@/api/system'
 import {
   Search, Timer, OfficeBuilding, DocumentChecked, Tickets, Star,
-  Clock, Location, User, Picture
+  Clock, Location, User, Picture, Bell
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
@@ -281,10 +312,15 @@ const galleryLoading = ref(false)
 const latestActivities = ref([])
 const activitiesLoading = ref(false)
 
+// 公告
+const notices = ref([])
+const noticeLoading = ref(false)
+
 onMounted(async () => {
   loadHomeStats()
   loadGallery()
   loadLatestActivities()
+  loadNotices()
 })
 
 async function loadHomeStats() {
@@ -348,6 +384,28 @@ async function loadLatestActivities() {
   } finally {
     activitiesLoading.value = false
   }
+}
+
+async function loadNotices() {
+  noticeLoading.value = true
+  try {
+    const data = await getLatestNotices(5)
+    notices.value = data || []
+  } catch (e) {
+    notices.value = []
+  } finally {
+    noticeLoading.value = false
+  }
+}
+
+function goToNotice(noticeId) {
+  router.push(`/notice/detail/${noticeId}`)
+}
+
+function formatNoticeDate(dateStr) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function getImageUrl(url) {
@@ -458,6 +516,91 @@ function goToDetail(activityId) {
   font-size: 14px;
   opacity: 0.8;
   margin-top: 8px;
+}
+
+/* Notice Bar */
+.notice-bar-section {
+  background: #fff;
+  padding: 20px;
+}
+
+.notice-bar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+}
+
+.notice-bar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ebeef5;
+  color: #667eea;
+}
+
+.notice-icon {
+  font-size: 20px;
+  animation: bell-ring 2s ease-in-out infinite;
+}
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(15deg); }
+  20% { transform: rotate(-15deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(0deg); }
+}
+
+.notice-bar-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notice-list {
+  padding: 0;
+}
+
+.notice-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #ebeef5;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.notice-row:last-child {
+  border-bottom: none;
+}
+
+.notice-row:hover {
+  background: #f5f7fa;
+}
+
+.notice-title-text {
+  flex: 1;
+  font-size: 14px;
+  color: #303133;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notice-time {
+  font-size: 12px;
+  color: #909399;
+}
+
+.notice-empty {
+  font-size: 14px;
+  color: #909399;
+  padding: 24px;
+  text-align: center;
 }
 
 /* Section */

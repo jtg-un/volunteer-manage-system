@@ -21,6 +21,18 @@ const routes = [
     meta: { title: '活动详情', guest: true }
   },
   {
+    path: '/notice/list',
+    name: 'NoticeList',
+    component: () => import('@/views/notice/list.vue'),
+    meta: { title: '公告列表', guest: true }
+  },
+  {
+    path: '/notice/detail/:id',
+    name: 'NoticeDetail',
+    component: () => import('@/views/notice/detail.vue'),
+    meta: { title: '公告详情', guest: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login/index.vue'),

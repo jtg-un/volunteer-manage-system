@@ -105,11 +105,7 @@
           <div class="form-tip">选择父级后，层级将自动推断</div>
         </el-form-item>
         <el-form-item label="区划编码" prop="regionCode">
-          <el-input v-model="form.regionCode" placeholder="如: 110101" :disabled="isEdit">
-            <template #append>
-              <el-button v-if="!isEdit && form.parentCode" @click="generateCode">自动生成</el-button>
-            </template>
-          </el-input>
+          <el-input v-model="form.regionCode" placeholder="如: 110101" :disabled="isEdit" />
           <div class="form-tip" v-if="!isEdit">
             当前层级：<strong>{{ currentLevelText }}</strong>，编码应为 {{ codeLengthText }}
           </div>
@@ -242,11 +238,33 @@ const cascaderProps = {
   lazyLoad: async (node, resolve) => {
     const { level: nodeLevel, value } = node
     const parentCode = nodeLevel === 0 ? '' : value
+
+    // 如果父级已经是区县级（编码6位），不再加载子节点
+    // 区县级不能再作为父级
+    if (parentCode && parentCode.length === 6) {
+      resolve([])
+      return
+    }
+
+    // 检查直辖市下的区（如1101、1201等4位编码）也不应该有子节点可展开
+    // 直辖市编码：11北京、12天津、31上海、50重庆
+    const municipalityCodes = ['11', '12', '31', '50']
+    if (parentCode && parentCode.length === 4) {
+      const provinceCode = parentCode.substring(0, 2)
+      if (municipalityCodes.includes(provinceCode)) {
+        // 直辖市下的区，不再加载子节点
+        resolve([])
+        return
+      }
+    }
+
     try {
       const res = await getRegionList(parentCode)
+      // 只返回省级和市级作为可选父级，区县级标记为leaf不再展开
       const nodes = res.map(item => ({
         regionCode: item.regionCode,
         regionName: item.regionName,
+        // 区县级不能再作为父级选择，设为leaf
         leaf: item.level >= 3 || !item.hasChildren
       }))
       resolve(nodes)
@@ -405,55 +423,45 @@ function handleEdit(row) {
 // 父级变更，自动推断层级
 function handleParentChange(values) {
   if (values && values.length > 0) {
-    form.parentCode = values[values.length - 1]
-    // 根据父级编码长度推断层级
-    const parentLen = form.parentCode.length
-    // 直辖市编码：11北京、12天津、31上海、50重庆
-    const municipalityCodes = ['11', '12', '31', '50']
-    const isMunicipality = municipalityCodes.includes(form.parentCode)
+    const selectedCode = values[values.length - 1]
+    // 根据选中编码的层级判断
+    const selectedLevel = getLevelFromCode(selectedCode)
 
-    if (parentLen === 2) {
-      if (isMunicipality) {
-        // 直辖市没有市级，直接到区县级
-        form.level = 3
-      } else {
-        // 普通省份，子级是市级
-        form.level = 2
-      }
-    } else if (parentLen === 4) {
-      form.level = 3 // 父级是市，当前是区
+    // 区县级不能再作为父级（区县是最小的区划）
+    if (selectedLevel === 3) {
+      ElMessage.warning('区县级不能再作为父级，请选择省级或市级')
+      form.parentCodes = []
+      form.parentCode = ''
+      form.level = null
+      return
     }
+
+    form.parentCode = selectedCode
+    form.level = selectedLevel + 1 // 子级层级 = 父级层级 + 1
   } else {
     form.parentCode = ''
     form.level = 1 // 无父级，默认省级
   }
 }
 
-// 自动生成编码
-function generateCode() {
-  if (!form.parentCode) {
-    ElMessage.warning('请先选择父级区划')
-    return
-  }
-
-  // 直辖市编码
+// 根据编码推断层级
+function getLevelFromCode(code) {
+  // 直辖市编码：11北京、12天津、31上海、50重庆
   const municipalityCodes = ['11', '12', '31', '50']
-  const parentLen = form.parentCode.length
-  const isMunicipality = municipalityCodes.includes(form.parentCode)
 
-  if (parentLen === 2) {
-    if (isMunicipality) {
-      // 直辖市下新增区：父级2位 + 中间2位(01市辖区) + 2位序号 = 6位
-      form.regionCode = form.parentCode + '0101'
-    } else {
-      // 普通省下新增市：父级2位 + 2位序号 = 4位
-      form.regionCode = form.parentCode + '01'
+  if (code.length === 2) {
+    return 1 // 省级
+  } else if (code.length === 4) {
+    // 检查是否是直辖市下的区（如 1101 是北京市下的市辖区）
+    const provinceCode = code.substring(0, 2)
+    if (municipalityCodes.includes(provinceCode)) {
+      return 3 // 直辖市下的区县级
     }
-  } else if (parentLen === 4) {
-    // 市下新增区：父级4位 + 2位序号 = 6位
-    form.regionCode = form.parentCode + '01'
+    return 2 // 市级
+  } else if (code.length === 6) {
+    return 3 // 区县级
   }
-  ElMessage.info('已生成初始编码，请根据实际情况调整')
+  return 1
 }
 
 async function handleSubmit() {
